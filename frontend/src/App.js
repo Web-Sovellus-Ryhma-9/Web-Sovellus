@@ -1,54 +1,37 @@
-import { useEffect, useState } from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Home from "./pages/Home";
+import Search from "./pages/Search";
+import Groups from "./pages/Groups";
+import CreateGroup from "./pages/CreateGroup";
+import OwnGroups from "./pages/OwnGroups";
+import Profile from "./pages/Profile";
+import HandleGroup from "./pages/HandleGroup";
+import SharedFavorite from "./pages/SharedFavorite";
+import SpecificGroup from "./pages/SpecificGroup";
+import SpecificMovie from "./pages/SpecificMovie";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
 
 function App() {
-  const [books, setBooks] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function fetchBooks() {
-      try {
-        const res = await fetch(`${process.env.REACT_APP_API_URL}/book`);
-        if (!res.ok) throw new Error("Verkkovirhe");
-        const data = await res.json();
-        setBooks(data);
-      } catch (err) {
-        console.error("Virhe haettaessa kirjoja:", err);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchBooks();
-  }, []);
-
-  if (loading) return <p>Ladataan kirjoja...</p>;
-
   return (
-    <div style={{ maxWidth: 600, margin: "2rem auto", fontFamily: "sans-serif" }}>
-      <h1>Minun Kirjat tietokannassa</h1>
-      {books.length === 0 ? (
-        <p>Ei kirjoja löytynyt.</p>
-      ) : (
-        <table border="1">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Author</th>
-              <th>ISBN</th>
-            </tr>
-          </thead>
-          <tbody>
-            {books.map((book) => (
-              <tr key={book.id}>
-                <td>{book.name}</td>
-                <td>{book.author}</td>
-                <td>{book.isbn}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-
-      )}
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/search" element={<Search />} />
+        <Route path="/ryhmat" element={<Groups />} />
+        <Route path="/creategroup" element={<CreateGroup />} />
+        <Route path="/owngroups" element={<OwnGroups />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/handlegroup" element={<HandleGroup />} />
+        <Route path="/sharedfavorite" element={<SharedFavorite />} />
+        <Route path="/group/:id" element={<SpecificGroup />} />
+        <Route path="/movie/:id" element={<SpecificMovie />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        {/* fallback */}
+        <Route path="*" element={<Home />} />
+      </Routes>
+    </Router>
   );
 }
 
