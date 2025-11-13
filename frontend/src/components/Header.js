@@ -1,20 +1,22 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "./Header.css";
 
 function Header() {
   const [query, setQuery] = useState("");
+  const navigate = useNavigate();
 
   function onSubmit(e) {
     e.preventDefault();
-    // For now we'll just log the query. This can be wired to routing or API later.
-    console.log("Search:", query);
-    // Optionally navigate to a search page: window.location.href = `/search?q=${encodeURIComponent(query)}`
+    if (!query) return;
+    // Navigate to the search page with query param
+    navigate(`/search?q=${encodeURIComponent(query)}`);
   }
 
   return (
     <header className="app-header">
       <div className="header-left">
-        <button className="logo-button" onClick={() => (window.location.href = "/")}>Home</button>
+        <button className="logo-button" onClick={() => navigate('/')}>Home</button>
       </div>
 
       <form className="search-form" onSubmit={onSubmit} role="search">

@@ -11,6 +11,7 @@ import SpecificGroup from "./pages/SpecificGroup";
 import SpecificMovie from "./pages/SpecificMovie";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import NotFound from "./pages/NotFound";
 
 function App() {
   return (
@@ -27,9 +28,10 @@ function App() {
         <Route path="/group/:id" element={<SpecificGroup />} />
         <Route path="/movie/:id" element={<SpecificMovie />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/notfound" element={<NotFound />} />
         <Route path="/register" element={<Register />} />
-        {/* fallback */}
-        <Route path="*" element={<Home />} />
+        {/* fallback: any unknown path -> NotFound */}
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </Router>
   );
