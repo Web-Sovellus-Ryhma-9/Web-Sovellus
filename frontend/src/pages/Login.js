@@ -1,13 +1,52 @@
-import React from "react";
+import React, { useState } from "react";
 import Header from "../components/Header";
+import "../components/Registerlogin.css";
+
 
 export default function Login() {
+  const [formData, setFormData] = useState({ username: "", password: "" });
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    // TODO: lähetä palvelimelle (fetch/axios)
+    console.log("Kirjautumistiedot:", formData);
+  };
   return (
     <div>
       <Header />
-      <div style={{ maxWidth: 500, margin: "2rem auto", padding: "0 1rem" }}>
+      <div className="page-container">        
         <h2>Kirjaudu</h2>
-        <p>Kirjautumislomake (placeholder).</p>
+        <form className="login-form" onSubmit={handleSubmit}>
+          <div>
+            <input
+              type="text"
+              id="username"
+              name="username"
+              placeholder="Käyttäjätunnus"
+              value={formData.username}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          <div>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              placeholder="Salasana"
+              value={formData.password}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          <span className="nav-text-button" onClick={() => (window.location.href = "/Register")}>Etkö ole rekisteröitynyt? Paina tästä!</span>
+          <button type="Submit">Kirjaudu</button>
+        </form>
       </div>
     </div>
   );

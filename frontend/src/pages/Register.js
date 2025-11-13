@@ -1,14 +1,61 @@
-import React from "react";
+import React, { useState } from "react";
 import Header from "../components/Header";
+import "../components/Registerlogin.css";
+
 
 export default function Register() {
+  const [formData, setFormData] = useState({
+    username: "",
+    password: "",
+    confirmPassword: "",
+    email: "",
+  });
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (formData.password !== formData.confirmPassword) {
+      alert("Salasanat eivät täsmää!");
+      return;
+    }
+    // Lähetä tiedot palvelimelle (esim. API-kutsu)
+    console.log("Rekisteröitymistiedot:", formData);
+  };
   return (
     <div>
       <Header />
-      <div style={{ maxWidth: 500, margin: "2rem auto", padding: "0 1rem" }}>
+      <div className="page-container">
+
         <h2>Rekisteröidy</h2>
-        <p>Rekisteröitymislomake (placeholder).</p>
-      </div>
+        <form className="register-form" onSubmit={handleSubmit}>
+          <div>
+            <input type="text" id="username" name="username"
+            placeholder="Käyttäjätunnus"  
+            value={FormData.username} onChange={handleChange} required/>
+          </div>
+          <div>
+            <input type="email" id="email" name="email" 
+            placeholder="sähköposti"
+            value={FormData.email} onChange={handleChange} required/>
+          </div>
+          <div>
+            <input type="password" id="password" name="password"
+            placeholder="Salasana" 
+            value={FormData.password} onChange={handleChange} required/>
+          </div>
+          <div>
+            <input type="password" id="confirmPassword" name="confirmPassword"
+            placeholder="Vahvista salasana"
+            value={FormData.confirmPassword} onChange={handleChange} required/>
+          </div>
+          <span className="nav-text-button" onClick={() => (window.location.href = "/login")}>Rekisteröitynyt jo? Kirjaudu sisään!</span>
+          <button type="Submit">Rekisteröidy</button>
+        </form>
+        </div>
     </div>
   );
 }
