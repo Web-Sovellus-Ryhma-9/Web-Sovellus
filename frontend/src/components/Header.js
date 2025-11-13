@@ -134,7 +134,7 @@ function Header() {
       </form>
 
       <nav className="header-right" aria-label="Päävalikko">
-        <button className="nav-button" onClick={() => (window.location.href = "/ryhmat")}>Ryhmät</button>
+        <button className="nav-button" onClick={() => (window.location.href = "/groups")}>Ryhmät</button>
         <button className="nav-button" onClick={() => (window.location.href = "/login")}>Kirjaudu</button>
       </nav>
     </header>
