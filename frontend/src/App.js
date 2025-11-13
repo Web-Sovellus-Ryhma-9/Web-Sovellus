@@ -19,7 +19,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/search" element={<Search />} />
-        <Route path="/ryhmat" element={<Groups />} />
+        <Route path="/groups" element={<Groups />} />
         <Route path="/creategroup" element={<CreateGroup />} />
         <Route path="/owngroups" element={<OwnGroups />} />
         <Route path="/profile" element={<Profile />} />
