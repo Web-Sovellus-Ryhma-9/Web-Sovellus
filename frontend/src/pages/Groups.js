@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Header from "../components/Header";
+import "./styles/pagestyles.css";
 
 export default function Groups() {
   const [groups, setGroups] = useState([]);
@@ -17,7 +18,6 @@ export default function Groups() {
         const data = await res.json();
         if (!cancelled) setGroups(data);
       } catch (e) {
-        // No backend groups API found — fall back to mock data so browsing works locally
         if (!cancelled)
           setGroups([
             { id: 1, name: "Elokuvakerho", description: "Katso ja keskustele elokuvista.", image: null },
@@ -36,90 +36,54 @@ export default function Groups() {
   }, []);
 
   function joinGroup(id) {
-    // optimistic UI: mark as joined locally. Replace with API call when backend exists.
     setJoinedIds(prev => new Set(prev).add(id));
-    // Example: fetch(`/api/groups/${id}/join`, { method: 'POST' })...
   }
 
   return (
     <div>
       <Header />
-      <div style={{ maxWidth: 900, margin: "2rem auto", padding: "0 1rem" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      <div className="page-container">
+        <div className="page-header">
           <h2 style={{ margin: 0 }}>Tutustu ryhmiin</h2>
-          <div style={{ display: "flex", gap: 8 }}>
+          <div className="header-actions">
             <Link to="/owngroups" style={{ textDecoration: "none" }}>
-              <button
-                style={{
-                  padding: "8px 12px",
-                  borderRadius: 4,
-                  border: "1px solid #bbb",
-                  background: "#fff",
-                  cursor: "pointer",
-                }}
-              >
-                Omat ryhmät
-              </button>
+              <button className="btn ghost">Omat ryhmät</button>
             </Link>
             <Link to="/creategroup" style={{ textDecoration: "none" }}>
-              <button
-                style={{
-                  padding: "8px 16px",
-                  borderRadius: 4,
-                  border: "1px solid #bbb",
-                  background: "#f6f6f6",
-                  cursor: "pointer",
-                }}
-              >
-                Luo ryhmä
-              </button>
+              <button className="btn primary">Luo ryhmä</button>
             </Link>
           </div>
         </div>
         {loading ? (
           <p>Ladataan ryhmiä…</p>
         ) : (
-          <div style={{ display: "grid", gap: 16 }}>
+          <div className="groups-list">
             {groups.map(group => (
-              <div
-                key={group.id}
-                style={{ display: "flex", alignItems: "center", gap: 16, padding: 8, borderBottom: "1px solid #eee" }}
-              >
-                <div
-                  style={{
-                    width: 96,
-                    height: 96,
-                    border: "2px solid #ccc",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    background: "#fff",
-                  }}
-                >
+              <div key={group.id} className="group-card">
+                <div className="group-image">
                   {group.image ? (
-                    <img src={group.image} alt={group.name} style={{ maxWidth: "100%", maxHeight: "100%" }} />
+                    <img src={group.image} alt={group.name} />
                   ) : (
                     <div style={{ color: "#666", fontSize: 12, textAlign: "center" }}>Kuva</div>
                   )}
                 </div>
 
-                <div style={{ flex: 1 }}>
+                <div className="group-info">
                   <Link to={`/group/${group.id}`} style={{ textDecoration: "none", color: "inherit" }}>
                     <h3 style={{ margin: 0 }}>{group.name}</h3>
                   </Link>
                   <p style={{ margin: "6px 0 0", color: "#444" }}>{group.description}</p>
                 </div>
 
-                <div style={{ width: 160, textAlign: "right" }}>
+                <div className="group-action">
                   <button
                     onClick={() => joinGroup(group.id)}
                     disabled={joinedIds.has(group.id)}
+                    className="btn"
                     style={{
+                      background: joinedIds.has(group.id) ? "#ddd" : undefined,
+                      cursor: joinedIds.has(group.id) ? "default" : undefined,
                       padding: "8px 16px",
-                      borderRadius: 4,
-                      border: "1px solid #bbb",
-                      background: joinedIds.has(group.id) ? "#ddd" : "#f6f6f6",
-                      cursor: joinedIds.has(group.id) ? "default" : "pointer",
                     }}
                   >
                     {joinedIds.has(group.id) ? "Odottaa hyväksymistä" : "Liity ryhmään"}
