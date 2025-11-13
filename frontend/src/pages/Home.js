@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Header from "../components/Header";
+import "./styles/pagestyles.css";
 
 const TMDB_IMAGE = "https://image.tmdb.org/t/p/w300";
 
@@ -15,7 +16,6 @@ export default function Home() {
         const res = await fetch("http://localhost:3001/tmdb/now_playing?page=1&region=FI");
         if (!res.ok) throw new Error(`Fetch failed: ${res.status}`);
         const data = await res.json();
-        // data.results is the TMDB list; take first 5
         setMovies((data.results || []).slice(0, 5));
       } catch (err) {
         setError(err.message || "Failed to load");
@@ -30,7 +30,7 @@ export default function Home() {
   return (
     <div>
       <Header />
-      <div style={{ maxWidth: 1100, margin: "2rem auto", padding: "0 1rem" }}>
+      <div className="home-container">
         <h1>Tervetuloa</h1>
         <p>Tervetuloa sovellukseen. Käytä ylävalikkoa siirtyäksesi eri sivuille tai hae sisältöä hakupalkin avulla.</p>
 
@@ -40,17 +40,17 @@ export default function Home() {
         {error && <p style={{ color: "red" }}>Error: {error}</p>}
 
         {!loading && !error && (
-          <div style={{ display: "flex", gap: 16, overflowX: "auto" }}>
+          <div className="movie-row">
             {movies.map((m) => (
-              <div key={m.id} style={{ width: 200, flex: "0 0 auto", textAlign: "center" }}>
+              <div key={m.id} className="movie-card">
                 {m.poster_path ? (
                   <img
+                    className="movie-poster"
                     src={`${TMDB_IMAGE}${m.poster_path}`}
                     alt={m.title}
-                    style={{ width: "100%", borderRadius: 6 }}
                   />
                 ) : (
-                  <div style={{ width: "100%", height: 300, background: "#ddd", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 6 }}>{m.title}</div>
+                  <div className="movie-placeholder">{m.title}</div>
                 )}
                 <div style={{ marginTop: 8 }}>
                   <strong>{m.title}</strong>

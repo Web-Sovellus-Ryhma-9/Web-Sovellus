@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import Header from "../components/Header";
-import "../components/Registerlogin.css";
+import "./styles/pagestyles.css";
 
 
 export default function Login() {
@@ -19,7 +19,7 @@ export default function Login() {
   return (
     <div>
       <Header />
-      <div className="page-container">        
+      <div className="auth-page-container">        
         <h2>Kirjaudu</h2>
         <form className="login-form" onSubmit={handleSubmit}>
           <div>

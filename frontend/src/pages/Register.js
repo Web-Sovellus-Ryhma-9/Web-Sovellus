@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import Header from "../components/Header";
-import "../components/Registerlogin.css";
+import "./styles/pagestyles.css";
 
 
 export default function Register() {
@@ -28,7 +28,7 @@ export default function Register() {
   return (
     <div>
       <Header />
-      <div className="page-container">
+      <div className="auth-page-container">
 
         <h2>Rekisteröidy</h2>
         <form className="register-form" onSubmit={handleSubmit}>
