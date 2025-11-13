@@ -1,4 +1,4 @@
-import { searchMovies, getMovieDetails } from "../models/tmdb_model.js";
+import { searchMovies, getMovieDetails, nowPlaying } from "../models/tmdb_model.js";
 
 export async function search(req, res, next) {
   try {
@@ -17,6 +17,17 @@ export async function details(req, res, next) {
     const id = req.params.id;
     if (!id) return res.status(400).json({ error: "Missing movie id" });
     const data = await getMovieDetails(id);
+    res.json(data);
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function now_playing(req, res, next) {
+  try {
+    const page = req.query.page || 1;
+    const region = req.query.region || "FI";
+    const data = await nowPlaying(page, region);
     res.json(data);
   } catch (err) {
     next(err);
