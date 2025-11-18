@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import Header from "../components/Header";
 import "./styles/pagestyles.css";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 
 export default function SpecificGroup() {
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
+  const { id } = useParams();
 
   const placeholderMovies = [
     { id: 1, title: "Elokuva 1", image: null },
@@ -96,7 +97,9 @@ export default function SpecificGroup() {
 
             <div className="group-actions">
               <button className="btn" onClick={() => setShowLeaveConfirm(true)}>Poistu ryhmästä</button>
-              <button className="btn primary">Hallinnoi ryhmää</button>
+              <Link to={`/handlegroup/${id ?? 1}`}>
+                <button className="btn">Hallinnoi ryhmää</button>
+              </Link>
             </div>
           </div>
         </div>
