@@ -175,10 +175,21 @@ function Header() {
             )}
           </div>
         ) : (
-          <button className="nav-button" onClick={() => (window.location.href = "/login")}>Kirjaudu</button>
-          <button className="menu-toggle" aria-label="Valikko" onClick={toggleMenu}>
-            ☰
-          </button>
+          <>
+            <button
+              className="nav-button"
+              onClick={() => (window.location.href = "/login")}
+            >
+              Kirjaudu
+            </button>
+            <button
+              className="menu-toggle"
+              aria-label="Valikko"
+              onClick={toggleMenu}
+            >
+              ☰
+            </button>
+          </>
         )}
       </nav>
 
