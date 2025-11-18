@@ -23,7 +23,7 @@ function App() {
         <Route path="/creategroup" element={<CreateGroup />} />
         <Route path="/owngroups" element={<OwnGroups />} />
         <Route path="/profile" element={<Profile />} />
-        <Route path="/handlegroup" element={<HandleGroup />} />
+        <Route path="/handlegroup/:id" element={<HandleGroup />} />
         <Route path="/sharedfavorite" element={<SharedFavorite />} />
         <Route path="/group/:id" element={<SpecificGroup />} />
         <Route path="/movie/:id" element={<SpecificMovie />} />
