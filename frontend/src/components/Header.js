@@ -7,6 +7,7 @@ function Header() {
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
   const timerRef = useRef(null);
   const wrapperRef = useRef(null);
@@ -67,6 +68,10 @@ function Header() {
     navigate(`/search?q=${encodeURIComponent(title)}`);
     setShowSuggestions(false);
     setQuery(title);
+  }
+
+  function toggleMenu() {
+    setMenuOpen(v => !v);
   }
 
   return (
@@ -136,7 +141,17 @@ function Header() {
       <nav className="header-right" aria-label="Päävalikko">
         <button className="nav-button" onClick={() => (window.location.href = "/groups")}>Ryhmät</button>
         <button className="nav-button" onClick={() => (window.location.href = "/login")}>Kirjaudu</button>
+        <button className="menu-toggle" aria-label="Valikko" onClick={toggleMenu}>
+          ☰
+        </button>
       </nav>
+
+      {menuOpen && (
+        <div className="mobile-nav" role="menu">
+          <button className="nav-button" onClick={() => { setMenuOpen(false); window.location.href = '/groups'; }}>Ryhmät</button>
+          <button className="nav-button" onClick={() => { setMenuOpen(false); window.location.href = '/login'; }}>Kirjaudu</button>
+        </div>
+      )}
     </header>
   );
 }

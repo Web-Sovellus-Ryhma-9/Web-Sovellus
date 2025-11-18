@@ -64,20 +64,53 @@
   cursor: pointer;
 }
 
+.menu-toggle {
+  display: none;
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.15);
+  color: #fff;
+  padding: 0.35rem 0.7rem;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.mobile-nav { display: none; }
+
 /* Small screens: stack and make search full width */
 @media (max-width: 640px) {
+  /* Keep header compact on phones: row layout with center search, hamburger on right */
   .app-header {
-    flex-direction: column;
-    align-items: stretch;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
   }
   .search-form {
     order: 2;
-    width: 100%;
-    margin-top: 0.6rem;
+    width: auto;
+    margin: 0 0.5rem;
+    flex: 1 1 auto;
+    max-width: none;
   }
   .header-right {
     order: 3;
     justify-content: flex-end;
-    margin-top: 0.4rem;
+    margin: 0;
   }
+  .menu-toggle { display: inline-block; }
+  /* On small screens, hide desktop nav buttons and show the hamburger only */
+  .header-right .nav-button { display: none; }
+  .menu-toggle { display: inline-flex; align-items: center; justify-content: center; }
+
+  /* Make search input easier to tap */
+  .search-input { padding: 0.5rem 0.6rem; font-size: 15px; }
+  .search-button { padding: 0.45rem 0.75rem; }
+
+  /* Mobile nav panel (shown when menuOpen in markup). Make it full width and prominent */
+  .mobile-nav { display: flex; flex-direction: column; gap: 8px; padding: 0.6rem 1rem; background: linear-gradient(90deg,#222,#2b2f33); }
+  .mobile-nav .nav-button { background: rgba(255,255,255,0.06); color: #fff; padding: 0.6rem 0.8rem; border-radius: 6px; text-align: left; }
+
+  /* Make header elements larger and touch-friendly */
+  .logo-button { padding: 0.45rem 0.8rem; }
+  .app-header { padding: 0.6rem 0.6rem; }
 }
