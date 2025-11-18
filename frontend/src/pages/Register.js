@@ -22,8 +22,22 @@ export default function Register() {
       alert("Salasanat eivät täsmää!");
       return;
     }
-    // Lähetä tiedot palvelimelle (esim. API-kutsu)
-    console.log("Rekisteröitymistiedot:", formData);
+    const API = process.env.REACT_APP_API_URL || "";
+    fetch(`${API}/auth/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username: formData.username, email: formData.email, password: formData.password }),
+    })
+      .then(async (res) => {
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || JSON.stringify(data));
+        alert("Rekisteröinti onnistui. Voit nyt kirjautua sisään.");
+        window.location.href = "/login";
+      })
+      .catch((err) => {
+        console.error(err);
+        alert("Rekisteröinti epäonnistui: " + err.message);
+      });
   };
   return (
     <div>
@@ -35,22 +49,22 @@ export default function Register() {
           <div>
             <input type="text" id="username" name="username"
             placeholder="Käyttäjätunnus"  
-            value={FormData.username} onChange={handleChange} required/>
+            value={formData.username} onChange={handleChange} required/>
           </div>
           <div>
             <input type="email" id="email" name="email" 
             placeholder="sähköposti"
-            value={FormData.email} onChange={handleChange} required/>
+            value={formData.email} onChange={handleChange} required/>
           </div>
           <div>
             <input type="password" id="password" name="password"
             placeholder="Salasana" 
-            value={FormData.password} onChange={handleChange} required/>
+            value={formData.password} onChange={handleChange} required/>
           </div>
           <div>
             <input type="password" id="confirmPassword" name="confirmPassword"
             placeholder="Vahvista salasana"
-            value={FormData.confirmPassword} onChange={handleChange} required/>
+            value={formData.confirmPassword} onChange={handleChange} required/>
           </div>
           <span className="nav-text-button" onClick={() => (window.location.href = "/login")}>Rekisteröitynyt jo? Kirjaudu sisään!</span>
           <button type="Submit">Rekisteröidy</button>
