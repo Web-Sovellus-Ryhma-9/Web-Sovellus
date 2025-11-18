@@ -13,8 +13,23 @@ export default function Login() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // TODO: lähetä palvelimelle (fetch/axios)
-    console.log("Kirjautumistiedot:", formData);
+    const API = process.env.REACT_APP_API_URL || "";
+    fetch(`${API}/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ identifier: formData.username, password: formData.password }),
+    })
+      .then(async (res) => {
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || JSON.stringify(data));
+        if (data.token) localStorage.setItem("token", data.token);
+        if (data.account) localStorage.setItem("account", JSON.stringify(data.account));
+        window.location.href = "/";
+      })
+      .catch((err) => {
+        console.error(err);
+        alert("Kirjautuminen epäonnistui: " + err.message);
+      });
   };
   return (
     <div>

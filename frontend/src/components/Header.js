@@ -6,6 +6,8 @@ function Header() {
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [account, setAccount] = useState(null);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const navigate = useNavigate();
   const timerRef = useRef(null);
@@ -23,10 +25,21 @@ function Header() {
     function onClickOutside(e) {
       if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
         setShowSuggestions(false);
+        setShowProfileMenu(false);
       }
     }
     document.addEventListener("click", onClickOutside);
     return () => document.removeEventListener("click", onClickOutside);
+  }, []);
+
+  // load account from localStorage
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("account");
+      if (raw) setAccount(JSON.parse(raw));
+    } catch (err) {
+      setAccount(null);
+    }
   }, []);
 
   useEffect(() => {
@@ -76,8 +89,8 @@ function Header() {
       </div>
 
       <form className="search-form" onSubmit={onSubmit} role="search" autoComplete="off">
-        <div style={{ display: "flex", alignItems: "center", width: '100%' }}>
-          <div style={{ position: "relative", flex: 1 }}>
+        <div className="search-inner">
+          <div className="search-input-container">
             <input
               className="search-input"
               type="search"
@@ -89,20 +102,10 @@ function Header() {
               style={{ width: '100%' }}
             />
             {showSuggestions && (
-              <div style={{
-                position: "absolute",
-                top: "100%",
-                left: 0,
-                right: 0,
-                background: "white",
-                border: "1px solid #ccc",
-                zIndex: 50,
-                maxHeight: 300,
-                overflowY: "auto"
-              }}>
-              {loadingSuggestions && <div style={{ padding: 8 }}>Loading...</div>}
+              <div className="suggestions-dropdown">
+              {loadingSuggestions && <div className="suggestion-loading">Loading...</div>}
               {!loadingSuggestions && suggestions.length === 0 && (
-                <div style={{ padding: 8, color: '#666' }}>No suggestions</div>
+                <div className="suggestion-empty">No suggestions</div>
               )}
               {!loadingSuggestions && suggestions.map((s) => {
                 const primaryTitle = s.title || s.name || s.original_title || s.original_name || s.media_type || `#${s.id}`;
@@ -111,31 +114,64 @@ function Header() {
                 <div
                   key={s.id}
                   onClick={() => onSelectSuggestion(primaryTitle)}
-                  style={{ padding: 8, cursor: 'pointer', borderBottom: '1px solid #eee', display: 'flex', gap: 8, alignItems: 'center' }}
+                  className="suggestion-item"
                 >
                   {s.poster_path ? (
                     <img
                       src={`https://image.tmdb.org/t/p/w92${s.poster_path}`}
                       alt={primaryTitle}
-                      style={{ width: 50, height: 75, objectFit: 'cover', borderRadius: 4 }}
+                      className="suggestion-poster"
                     />
                   ) : (
-                    <div style={{ width: 50, height: 75, background: '#ddd', borderRadius: 4 }} />
+                    <div className="suggestion-poster--placeholder" />
                   )}
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <strong style={{ lineHeight: 1, fontSize: 18, color: '#000000ff' }}>{primaryTitle}</strong>                  </div>
+                  <div className="suggestion-meta">
+                    <strong className="suggestion-title">{primaryTitle}</strong>
+                  </div>
                 </div>
               )})}
             </div>
             )}
           </div>
-          <button className="search-button" type="submit" aria-label="Hae" style={{ marginLeft: 8 }}>Hae</button>
+          <button className="search-button" type="submit" aria-label="Hae">Hae</button>
         </div>
       </form>
 
       <nav className="header-right" aria-label="Päävalikko">
         <button className="nav-button" onClick={() => (window.location.href = "/groups")}>Ryhmät</button>
-        <button className="nav-button" onClick={() => (window.location.href = "/login")}>Kirjaudu</button>
+
+        {account ? (
+          <div style={{ position: 'relative', display: 'inline-block' }}>
+            <button
+              aria-haspopup="true"
+              aria-expanded={showProfileMenu}
+              className="nav-button profile-button"
+              onClick={() => setShowProfileMenu((s) => !s)}
+              title={account.username}
+            >
+              <div className="avatar-circle">
+                {account.username ? account.username.charAt(0).toUpperCase() : '?'}
+              </div>
+            </button>
+
+            {showProfileMenu && (
+              <div className="profile-menu">
+                <button onClick={() => { setShowProfileMenu(false); navigate('/profile'); }} className="profile-menu-button">Oma profiili</button>
+                <button onClick={() => { setShowProfileMenu(false); navigate('/owngroups'); }} className="profile-menu-button">Omat ryhmät</button>
+                <button onClick={() => {
+                  // logout
+                  localStorage.removeItem('token');
+                  localStorage.removeItem('account');
+                  setAccount(null);
+                  setShowProfileMenu(false);
+                  navigate('/login');
+                }} className="profile-menu-button logout-button">Kirjaudu ulos</button>
+              </div>
+            )}
+          </div>
+        ) : (
+          <button className="nav-button" onClick={() => (window.location.href = "/login")}>Kirjaudu</button>
+        )}
       </nav>
     </header>
   );
