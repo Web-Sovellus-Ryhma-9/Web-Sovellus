@@ -111,3 +111,31 @@
   font-size: 12px;
 }
 .group-movie-name { margin-top: 8px; font-weight: 600; font-size: 14px; }
+
+/* SpecificMovie page */
+.movie-container { max-width: 1000px; margin: 2rem auto; padding: 0 1rem; }
+.movie-grid { display: flex; gap: 24px; }
+.movie-sidebar { width: 260px; }
+.movie-poster { width: 220px; height: 220px; border: 2px solid #ccc; display: flex; align-items: center; justify-content: center; background: #fff; }
+.movie-actions { margin-top: 12px; }
+.movie-actions .btn { margin-right: 8px; }
+.group-select { width: 100%; padding: 6px; }
+.movie-main { flex: 1; }
+.movie-title { margin-top: 0; }
+.avg-rating { margin-bottom: 12px; }
+.movie-description { color: #333; }
+.review-form { display: grid; gap: 8px; }
+.reviews-list { border: 1px solid #ddd; }
+.review-item { padding: 12px; border-bottom: 1px solid #eee; }
+.review-header { display: flex; justify-content: space-between; align-items: center; }
+.review-comment { margin-top: 8px; }
+.review-date { margin-top: 6px; color: #888; font-size: 12px; }
+
+/* Profile page */
+.profile-container { max-width: 900px; margin: 2rem auto; padding: 0 1rem; }
+.profile-grid { display: flex; gap: 24px; }
+.profile-sidebar { width: 240px; }
+.profile-avatar { width: 180px; height: 180px; border: 2px solid #ccc; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; background: #fff; }
+.profile-btn { display: block; padding: 8px 12px; margin-bottom: 12px; width: 100%; text-align: center; }
+.favorites-list { border: 1px solid #ccc; }
+.favorite-item { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid #eee; }
