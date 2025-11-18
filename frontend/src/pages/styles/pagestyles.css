@@ -138,6 +138,7 @@
 .profile-btn { display: block; padding: 8px 12px; margin-bottom: 12px; width: 100%; text-align: center; }
 .favorites-list { border: 1px solid #ccc; }
 .favorite-item { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid #eee; }
+
 .group-movie-link {
   display: block;
   text-decoration: none;
