@@ -2,8 +2,8 @@ import express from "express";
 import cors from "cors";
 import "dotenv/config";
 
-import bookRouter from "./routers/book_router.js";
 import tmdbRouter from "./routers/tmdb_router.js";
+import accountRouter from "./routers/account_router.js";
 
 
 const app = express();
@@ -17,8 +17,9 @@ app.get("/", async (req, res) => {
   res.send("Postgres API esimerkki");
 });
 
-app.use("/book", bookRouter);
 app.use("/tmdb", tmdbRouter);
+app.use("/auth", accountRouter);
+// Note: `/book` routes are not mounted because `book` table was removed from the DB schema
 
 app.listen(port, () => {
   console.log(`Server is listening port ${port}`);

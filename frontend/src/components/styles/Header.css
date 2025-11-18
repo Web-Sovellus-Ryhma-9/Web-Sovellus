@@ -114,3 +114,129 @@
   .logo-button { padding: 0.45rem 0.8rem; }
   .app-header { padding: 0.6rem 0.6rem; }
 }
+
+/* Added classes previously inline in Header.js */
+.search-inner {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.search-input-container {
+  position: relative;
+  flex: 1;
+}
+
+.suggestions-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #ffffff;
+  border: 1px solid #ccc;
+  z-index: 50;
+  max-height: 300px;
+  overflow-y: auto;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+  border-radius: 6px;
+}
+
+.suggestion-loading {
+  padding: 8px;
+}
+
+.suggestion-empty {
+  padding: 8px;
+  color: #666;
+}
+
+.suggestion-item {
+  padding: 8px;
+  cursor: pointer;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.suggestion-poster {
+  width: 50px;
+  height: 75px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.suggestion-poster--placeholder {
+  width: 50px;
+  height: 75px;
+  background: #ddd;
+  border-radius: 4px;
+}
+
+.suggestion-meta {
+  display: flex;
+  flex-direction: column;
+}
+
+.suggestion-title {
+  line-height: 1;
+  font-size: 18px;
+  color: #000000ff;
+}
+
+.search-button {
+  margin-left: 8px;
+}
+
+.header-right {
+  position: relative;
+}
+
+.profile-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.avatar-circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 18px;
+  background: #666;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+}
+
+.profile-menu {
+  position: absolute;
+  right: 0;
+  margin-top: 8px;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  z-index: 60;
+  min-width: 160px;
+  overflow: hidden;
+}
+
+.profile-menu-button {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.profile-menu-button:hover {
+  background: #f5f5f5;
+}
+
+.logout-button {
+  color: #b00;
+}
