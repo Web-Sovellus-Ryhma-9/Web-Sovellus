@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import Header from "../components/Header";
 
+const API_BASE = process.env.REACT_APP_API_URL || "";
+
 function Stars({ value }) {
   const stars = [];
   for (let i = 1; i <= 5; i++) {
@@ -34,10 +36,18 @@ export default function SpecificMovie() {
 
     async function load() {
       try {
-        const res = await fetch(`/api/movies/${id}`);
+        const res = await fetch(`${API_BASE}/tmdb/movie/${encodeURIComponent(id)}`);
         if (!res.ok) throw new Error("no api");
         const data = await res.json();
-        if (!cancelled) setMovie(data);
+        // map TMDB fields to the local movie shape used in this component
+        const mapped = {
+          id: data.id,
+          title: data.title || data.name,
+          description: data.overview || data.tagline || "",
+          image: data.poster_path ? `https://image.tmdb.org/t/p/w500${data.poster_path}` : null,
+          tmdb: data,
+        };
+        if (!cancelled) setMovie(mapped);
       } catch (e) {
         // fallback mock movie
         if (!cancelled)
@@ -179,8 +189,21 @@ export default function SpecificMovie() {
       <div className="movie-container">
         <div className="movie-grid">
           <div className="movie-sidebar">
-            <div className="movie-poster">
-              {movie.image ? <img src={movie.image} alt={movie.title} style={{ maxWidth: "100%", maxHeight: "100%" }} /> : <div>Kuva</div>}
+            <div
+              className="movie-poster"
+              style={movie.image ? { border: 'none', background: 'transparent', padding: 0, height: 'auto' } : {}}
+            >
+              {movie.image ? (
+                <img
+                  src={movie.image}
+                  alt={movie.title}
+                  style={{ maxWidth: '100%', height: 'auto', display: 'block', borderRadius: 6 }}
+                />
+              ) : (
+                <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#ddd', borderRadius: 6 }}>
+                  <span style={{ color: '#555' }}>No image</span>
+                </div>
+              )}
             </div>
 
             <div className="movie-actions">
@@ -205,7 +228,20 @@ export default function SpecificMovie() {
 
           <div className="movie-main">
             <h2 className="movie-title">{movie.title}</h2>
-            <div className="avg-rating"><Stars value={Math.round(averageRating())} /> <span style={{ marginLeft: 8 }}>{averageRating()} / 5</span></div>
+            <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 8 }}>
+              <div className="avg-rating"><Stars value={Math.round(averageRating())} /> <span style={{ marginLeft: 8 }}>{averageRating()} / 5</span></div>
+              {movie.tmdb?.release_date && (
+                <div style={{ color: '#666' }}><strong>Release Date:</strong> {new Date(movie.tmdb.release_date).toLocaleDateString()}</div>
+              )}
+              {movie.tmdb?.runtime != null && (
+                <div style={{ color: '#666' }}><strong>Duration:</strong> {movie.tmdb.runtime} min</div>
+              )}
+            </div>
+
+            {movie.tmdb?.genres && movie.tmdb.genres.length > 0 && (
+              <div style={{ marginBottom: 12 }}><strong>Genres:</strong> {movie.tmdb.genres.map(g => g.name).join(', ')}</div>
+            )}
+
             <p className="movie-description">{movie.description}</p>
 
             <hr />
