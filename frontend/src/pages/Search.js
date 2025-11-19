@@ -13,6 +13,7 @@ export default function Search() {
 
   const API_BASE = process.env.REACT_APP_API_URL || "";
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
 
   const [yearFrom, setYearFrom] = useState(String(2000));
   const [yearTo, setYearTo] = useState(String(new Date().getFullYear()));
