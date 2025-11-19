@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Header from "../components/Header";
 import { useSearchParams } from "react-router-dom";
+import { useNavigate } from 'react-router-dom';
 import "./styles/pagestyles.css";
 
 export default function Search() {
@@ -200,7 +201,15 @@ export default function Search() {
         <div className="search-results">
           {results.length === 0 && !loading && <p>No results</p>}
           {results.map((m) => (
-            <div key={m.id} className="search-result">
+            <div
+              key={m.id}
+              className="search-result"
+              role="button"
+              tabIndex={0}
+              onClick={() => navigate(`/movie/${m.id}`)}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') navigate(`/movie/${m.id}`); }}
+              style={{ cursor: 'pointer' }}
+            >
               {m.poster_path ? (
                 <img
                   alt={m.title}

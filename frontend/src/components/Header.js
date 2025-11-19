@@ -95,6 +95,20 @@ function Header() {
     };
   }, [query, API_BASE]);
 
+  function onSelectSuggestion(item) {
+    const primaryTitle = item.title || item.name || item.original_title || item.original_name || `#${item.id}`;
+
+    // If this looks like a movie result, go straight to the movie page
+    const isMovie = Boolean(item.title || item.media_type === 'movie' || item.release_date);
+    if (isMovie && item.id) {
+      navigate(`/movie/${item.id}`);
+      setShowSuggestions(false);
+      setQuery(primaryTitle);
+      return;
+    }
+
+    // Fallback: navigate to search page preserving filters
+    let searchPath = `/search?q=${encodeURIComponent(primaryTitle)}`;
   function onSelectSuggestion(title) {
     let searchPath = `/search?q=${encodeURIComponent(title)}`;
     try {
@@ -102,6 +116,7 @@ function Header() {
       if (raw) {
         const f = JSON.parse(raw);
         const params = new URLSearchParams();
+        params.append('q', primaryTitle);
         params.append('q', title);
         if (searchType && searchType !== 'title') params.append('search_by', searchType);
         if (f.year_from) params.append('year_from', f.year_from);
@@ -112,7 +127,7 @@ function Header() {
     } catch (e) {}
     navigate(searchPath);
     setShowSuggestions(false);
-    setQuery(title);
+    setQuery(primaryTitle);
   }
 
   function toggleMenu() {
@@ -153,12 +168,16 @@ function Header() {
               {!loadingSuggestions && suggestions.map((s) => {
                 const primaryTitle = s.title || s.name || s.original_title || s.original_name || s.media_type || `#${s.id}`;
                 const year = s.release_date?.slice(0,4) || s.first_air_date?.slice(0,4) || '';
+                const imagePath = s.poster_path || s.profile_path || null;
                 const imagePath = (searchType === 'person') ? s.profile_path : s.poster_path;
                 return (
                 <div
                   key={s.id}
-                  onClick={() => onSelectSuggestion(primaryTitle)}
+                  onClick={() => onSelectSuggestion(s)}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onSelectSuggestion(s); }}
                   className="suggestion-item"
+                  role="button"
+                  tabIndex={0}
                 >
                   {imagePath ? (
                     <img

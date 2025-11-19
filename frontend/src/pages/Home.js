@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import "./styles/pagestyles.css";
 
@@ -26,6 +27,8 @@ export default function Home() {
 
     fetchNowPlaying();
   }, []);
+
+  const navigate = useNavigate();
 
   // We'll auto-scroll the wrapper's scrollLeft for a smooth, pausable loop.
   const wrapperRef = useRef(null);
@@ -161,7 +164,15 @@ export default function Home() {
               {[0, 1].map((rep) => (
                 <div key={rep} style={{ display: "flex" }}>
                   {movies.map((m) => (
-                    <div key={`${rep}-${m.id}`} className="movie-card" style={{ marginRight: 16 }}>
+                    <div
+                      key={`${rep}-${m.id}`}
+                      className="movie-card"
+                      style={{ marginRight: 16, cursor: 'pointer' }}
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => navigate(`/movie/${m.id}`)}
+                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') navigate(`/movie/${m.id}`); }}
+                    >
                       {m.poster_path ? (
                         <img className="movie-poster" src={`${TMDB_IMAGE}${m.poster_path}`} alt={m.title} />
                       ) : (
