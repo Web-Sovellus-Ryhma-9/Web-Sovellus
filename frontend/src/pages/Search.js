@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Header from "../components/Header";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import "./styles/pagestyles.css";
 
 export default function Search() {
@@ -12,6 +12,7 @@ export default function Search() {
 
   const API_BASE = process.env.REACT_APP_API_URL || "";
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
 
   const [yearFrom, setYearFrom] = useState(String(2000));
   const [yearTo, setYearTo] = useState(String(new Date().getFullYear()));
@@ -200,7 +201,15 @@ export default function Search() {
         <div className="search-results">
           {results.length === 0 && !loading && <p>No results</p>}
           {results.map((m) => (
-            <div key={m.id} className="search-result">
+            <div
+              key={m.id}
+              className="search-result"
+              role="button"
+              tabIndex={0}
+              style={{ cursor: 'pointer' }}
+              onClick={() => navigate(`/movie/${m.id}`)}
+              onKeyDown={(e) => { if (e.key === 'Enter') navigate(`/movie/${m.id}`); }}
+            >
               {m.poster_path ? (
                 <img
                   alt={m.title}

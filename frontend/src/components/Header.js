@@ -79,7 +79,36 @@ function Header() {
         const json = await res.json();
             // DEBUG: log results returned from backend/TMDB to inspect fields
             console.log('TMDB search results for', query, json.results);
-        const top = (json.results || []).slice(0, 5);
+        let top = (json.results || []).slice(0, 10);
+        // If we are searching people, deduplicate identical names (TMDB can contain
+        // multiple person entries with the same display name). Keep the entry with
+        // the highest popularity or with a profile image when possible.
+        if (searchType === 'person') {
+          const byName = {};
+          for (const p of top) {
+            const name = (p.name || '').trim().toLowerCase();
+            if (!name) continue;
+            if (!byName[name]) {
+              byName[name] = p;
+            } else {
+              const current = byName[name];
+              // prefer the one that has a profile image
+              const curHasImage = !!current.profile_path;
+              const pHasImage = !!p.profile_path;
+              if (pHasImage && !curHasImage) {
+                byName[name] = p;
+                continue;
+              }
+              // otherwise prefer higher popularity
+              if ((p.popularity || 0) > (current.popularity || 0)) {
+                byName[name] = p;
+              }
+            }
+          }
+          top = Object.values(byName).slice(0, 5);
+        } else {
+          top = top.slice(0,5);
+        }
         setSuggestions(top);
         setShowSuggestions(true);
       } catch (err) {
@@ -113,6 +142,41 @@ function Header() {
     navigate(searchPath);
     setShowSuggestions(false);
     setQuery(title);
+  }
+
+  function handleSuggestionClick(s, primaryTitle) {
+    // If it's a movie title suggestion, go directly to movie page
+    if (searchType === 'title' && s && s.id && s.title) {
+      setShowSuggestions(false);
+      setQuery(primaryTitle || s.title || '');
+      navigate(`/movie/${s.id}`);
+      return;
+    }
+
+    // If it's a person suggestion, start a person search (preserve filters)
+    if (searchType === 'person' && s && s.name) {
+      try {
+        const params = new URLSearchParams();
+        params.append('q', s.name);
+        params.append('search_by', 'person');
+        const raw = localStorage.getItem('tmdb_filters');
+        if (raw) {
+          const f = JSON.parse(raw);
+          if (f.year_from) params.append('year_from', f.year_from);
+          if (f.year_to) params.append('year_to', f.year_to);
+          if (f.with_genres) params.append('with_genres', f.with_genres);
+        }
+        setShowSuggestions(false);
+        setQuery(s.name);
+        navigate(`/search?${params.toString()}`);
+      } catch (e) {
+        onSelectSuggestion(primaryTitle || s.name || '');
+      }
+      return;
+    }
+
+    // fallback: perform a regular select (title search)
+    onSelectSuggestion(primaryTitle || s.title || s.name || '');
   }
 
   function toggleMenu() {
@@ -155,11 +219,14 @@ function Header() {
                 const year = s.release_date?.slice(0,4) || s.first_air_date?.slice(0,4) || '';
                 const imagePath = (searchType === 'person') ? s.profile_path : s.poster_path;
                 return (
-                <div
-                  key={s.id}
-                  onClick={() => onSelectSuggestion(primaryTitle)}
-                  className="suggestion-item"
-                >
+                  <div
+                    key={s.id}
+                    onClick={() => handleSuggestionClick(s, primaryTitle)}
+                    className="suggestion-item"
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => { if (e.key === 'Enter') handleSuggestionClick(s, primaryTitle); }}
+                  >
                   {imagePath ? (
                     <img
                       src={`https://image.tmdb.org/t/p/w92${imagePath}`}

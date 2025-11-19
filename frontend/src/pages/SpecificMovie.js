@@ -34,10 +34,19 @@ export default function SpecificMovie() {
 
     async function load() {
       try {
-        const res = await fetch(`/api/movies/${id}`);
-        if (!res.ok) throw new Error("no api");
-        const data = await res.json();
-        if (!cancelled) setMovie(data);
+        const API_BASE = process.env.REACT_APP_API_URL || "";
+        const res = await fetch(`${API_BASE}/tmdb/movie/${id}`);
+        if (!res.ok) throw new Error("tmdb fetch failed");
+        const json = await res.json();
+        // map TMDB response to our movie shape while keeping raw data
+        const mapped = {
+          id: json.id,
+          title: json.title || json.name || `Movie ${id}`,
+          description: json.overview || "",
+          image: json.poster_path ? `https://image.tmdb.org/t/p/w500${json.poster_path}` : null,
+          tmdb: json,
+        };
+        if (!cancelled) setMovie(mapped);
       } catch (e) {
         // fallback mock movie
         if (!cancelled)
@@ -164,6 +173,13 @@ export default function SpecificMovie() {
     return Math.round((sum / reviews.length) * 10) / 10;
   }
 
+  function formatRuntime(mins) {
+    if (!mins && mins !== 0) return "";
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    return h > 0 ? `${h}h ${m}min` : `${m}min`;
+  }
+
   if (loading || !movie) return (
     <div>
       <Header />
@@ -178,10 +194,14 @@ export default function SpecificMovie() {
       <Header />
       <div className="movie-container">
         <div className="movie-grid">
-          <div className="movie-sidebar">
-            <div className="movie-poster">
-              {movie.image ? <img src={movie.image} alt={movie.title} style={{ maxWidth: "100%", maxHeight: "100%" }} /> : <div>Kuva</div>}
-            </div>
+            <div className="movie-sidebar">
+            {movie.image ? (
+              <img src={movie.image} alt={movie.title} className="specificmovie-poster" />
+            ) : (
+              <div className="movie-poster">
+                <div className="movie-placeholder">No image</div>
+              </div>
+            )}
 
             <div className="movie-actions">
               <button onClick={toggleFavorite} className="btn">
@@ -198,13 +218,24 @@ export default function SpecificMovie() {
                 ))}
               </select>
               <button onClick={joinSelectedGroup} disabled={joining} className="btn" style={{ marginTop: 8 }}>
-                Liity ryhmään
+                Lisää ryhmään
               </button>
             </div>
           </div>
 
           <div className="movie-main">
             <h2 className="movie-title">{movie.title}</h2>
+            <div className="movie-meta" style={{ color: '#666', marginBottom: 8 }}>
+              {movie.tmdb?.release_date && (
+                <span>Release: {new Date(movie.tmdb.release_date).toLocaleDateString()}</span>
+              )}
+              {movie.tmdb?.runtime != null && (
+                <span style={{ marginLeft: 12 }}>Duration: {formatRuntime(movie.tmdb.runtime)}</span>
+              )}
+              {movie.tmdb?.genres && movie.tmdb.genres.length > 0 && (
+                <div style={{ marginTop: 6 }}>Genres: {movie.tmdb.genres.map(g => g.name).join(', ')}</div>
+              )}
+            </div>
             <div className="avg-rating"><Stars value={Math.round(averageRating())} /> <span style={{ marginLeft: 8 }}>{averageRating()} / 5</span></div>
             <p className="movie-description">{movie.description}</p>
 

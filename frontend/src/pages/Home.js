@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import "./styles/pagestyles.css";
 
@@ -34,6 +35,7 @@ export default function Home() {
   const rafId = useRef(null);
   const lastTs = useRef(null);
   const [isPaused, setIsPaused] = useState(false);
+  const navigate = useNavigate();
   // scrolling speed in pixels per second
   const speedPxPerSec = 80;
 
@@ -161,7 +163,15 @@ export default function Home() {
               {[0, 1].map((rep) => (
                 <div key={rep} style={{ display: "flex" }}>
                   {movies.map((m) => (
-                    <div key={`${rep}-${m.id}`} className="movie-card" style={{ marginRight: 16 }}>
+                    <div
+                      key={`${rep}-${m.id}`}
+                      className="movie-card"
+                      style={{ marginRight: 16, cursor: 'pointer' }}
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => navigate(`/movie/${m.id}`)}
+                      onKeyDown={(e) => { if (e.key === 'Enter') navigate(`/movie/${m.id}`); }}
+                    >
                       {m.poster_path ? (
                         <img className="movie-poster" src={`${TMDB_IMAGE}${m.poster_path}`} alt={m.title} />
                       ) : (
