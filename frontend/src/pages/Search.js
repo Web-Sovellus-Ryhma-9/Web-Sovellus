@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Header from "../components/Header";
-import { useSearchParams } from "react-router-dom";
-import { useNavigate } from 'react-router-dom';
+import { useSearchParams, useNavigate } from "react-router-dom";
 import "./styles/pagestyles.css";
 
 export default function Search() {
@@ -13,6 +12,7 @@ export default function Search() {
 
   const API_BASE = process.env.REACT_APP_API_URL || "";
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
 
   const [yearFrom, setYearFrom] = useState(String(2000));
   const [yearTo, setYearTo] = useState(String(new Date().getFullYear()));
@@ -206,9 +206,10 @@ export default function Search() {
               className="search-result"
               role="button"
               tabIndex={0}
+              style={{ cursor: 'pointer' }}
               onClick={() => navigate(`/movie/${m.id}`)}
               onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') navigate(`/movie/${m.id}`); }}
-              style={{ cursor: 'pointer' }}
+            
             >
               {m.poster_path ? (
                 <img

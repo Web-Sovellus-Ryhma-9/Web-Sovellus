@@ -37,15 +37,15 @@ export default function SpecificMovie() {
     async function load() {
       try {
         const res = await fetch(`${API_BASE}/tmdb/movie/${encodeURIComponent(id)}`);
-        if (!res.ok) throw new Error("no api");
-        const data = await res.json();
-        // map TMDB fields to the local movie shape used in this component
+        if (!res.ok) throw new Error("tmdb fetch failed");
+        const json = await res.json();
+        // map TMDB response to our movie shape while keeping raw data
         const mapped = {
-          id: data.id,
-          title: data.title || data.name,
-          description: data.overview || data.tagline || "",
-          image: data.poster_path ? `https://image.tmdb.org/t/p/w500${data.poster_path}` : null,
-          tmdb: data,
+          id: json.id,
+          title: json.title || json.name || `Movie ${id}`,
+          description: json.overview || json.tagline || "",
+          image: json.poster_path ? `https://image.tmdb.org/t/p/w500${json.poster_path}` : null,
+          tmdb: json,
         };
         if (!cancelled) setMovie(mapped);
       } catch (e) {
@@ -174,6 +174,13 @@ export default function SpecificMovie() {
     return Math.round((sum / reviews.length) * 10) / 10;
   }
 
+  function formatRuntime(mins) {
+    if (!mins && mins !== 0) return "";
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    return h > 0 ? `${h}h ${m}min` : `${m}min`;
+  }
+
   if (loading || !movie) return (
     <div>
       <Header />
@@ -189,22 +196,13 @@ export default function SpecificMovie() {
       <div className="movie-container">
         <div className="movie-grid">
           <div className="movie-sidebar">
-            <div
-              className="movie-poster"
-              style={movie.image ? { border: 'none', background: 'transparent', padding: 0, height: 'auto' } : {}}
-            >
-              {movie.image ? (
-                <img
-                  src={movie.image}
-                  alt={movie.title}
-                  style={{ maxWidth: '100%', height: 'auto', display: 'block', borderRadius: 6 }}
-                />
-              ) : (
-                <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#ddd', borderRadius: 6 }}>
-                  <span style={{ color: '#555' }}>No image</span>
-                </div>
-              )}
-            </div>
+            {movie.image ? (
+              <img src={movie.image} alt={movie.title} className="specificmovie-poster" />
+            ) : (
+              <div className="movie-poster">
+                <div className="movie-placeholder">No image</div>
+              </div>
+            )}
 
             <div className="movie-actions">
               <button onClick={toggleFavorite} className="btn">
@@ -221,27 +219,25 @@ export default function SpecificMovie() {
                 ))}
               </select>
               <button onClick={joinSelectedGroup} disabled={joining} className="btn" style={{ marginTop: 8 }}>
-                Liity ryhmään
+                Lisää ryhmään
               </button>
             </div>
           </div>
 
           <div className="movie-main">
             <h2 className="movie-title">{movie.title}</h2>
-            <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 8 }}>
-              <div className="avg-rating"><Stars value={Math.round(averageRating())} /> <span style={{ marginLeft: 8 }}>{averageRating()} / 5</span></div>
+            <div className="movie-meta" style={{ color: '#666', marginBottom: 8 }}>
               {movie.tmdb?.release_date && (
-                <div style={{ color: '#666' }}><strong>Release Date:</strong> {new Date(movie.tmdb.release_date).toLocaleDateString()}</div>
+                <span>Release: {new Date(movie.tmdb.release_date).toLocaleDateString()}</span>
               )}
               {movie.tmdb?.runtime != null && (
-                <div style={{ color: '#666' }}><strong>Duration:</strong> {movie.tmdb.runtime} min</div>
+                <span style={{ marginLeft: 12 }}>Duration: {formatRuntime(movie.tmdb.runtime)}</span>
               )}
             </div>
-
+            <div className="avg-rating"><Stars value={Math.round(averageRating())} /> <span style={{ marginLeft: 8 }}>{averageRating()} / 5</span></div>
             {movie.tmdb?.genres && movie.tmdb.genres.length > 0 && (
-              <div style={{ marginBottom: 12 }}><strong>Genres:</strong> {movie.tmdb.genres.map(g => g.name).join(', ')}</div>
+              <div style={{ marginTop: 6 }}>Genres: {movie.tmdb.genres.map(g => g.name).join(', ')}</div>
             )}
-
             <p className="movie-description">{movie.description}</p>
 
             <hr />
