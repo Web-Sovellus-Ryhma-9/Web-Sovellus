@@ -4,6 +4,7 @@ import "./styles/Header.css";
 
 function Header() {
   const [query, setQuery] = useState("");
+  const [searchType, setSearchType] = useState('title'); // 'title' or 'person'
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [account, setAccount] = useState(null);
@@ -17,8 +18,23 @@ function Header() {
 
   function onSubmit(e) {
     e.preventDefault();
-    if (!query) return;
-    navigate(`/search?q=${encodeURIComponent(query)}`);
+    // allow submitting empty query — include saved filters if present
+    let searchPath = "/search";
+    try {
+      const raw = localStorage.getItem('tmdb_filters');
+      const params = new URLSearchParams();
+      if (query) params.append('q', query);
+      if (searchType && searchType !== 'title') params.append('search_by', searchType);
+      if (raw) {
+        const f = JSON.parse(raw);
+        if (f.year_from) params.append('year_from', f.year_from);
+        if (f.year_to) params.append('year_to', f.year_to);
+        if (f.with_genres) params.append('with_genres', f.with_genres);
+      }
+      const qs = params.toString();
+      if (qs) searchPath = `/search?${qs}`;
+    } catch (e) {}
+    navigate(searchPath);
     setShowSuggestions(false);
   }
 
@@ -55,7 +71,9 @@ function Header() {
         timerRef.current = setTimeout(async () => {
       setLoadingSuggestions(true);
       try {
-        const url = `${API_BASE}/tmdb/search?q=${encodeURIComponent(query)}`;
+        const url = (searchType === 'person')
+          ? `${API_BASE}/tmdb/search_person?q=${encodeURIComponent(query)}`
+          : `${API_BASE}/tmdb/search?q=${encodeURIComponent(query)}`;
         const res = await fetch(url);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const json = await res.json();
@@ -91,12 +109,16 @@ function Header() {
 
     // Fallback: navigate to search page preserving filters
     let searchPath = `/search?q=${encodeURIComponent(primaryTitle)}`;
+  function onSelectSuggestion(title) {
+    let searchPath = `/search?q=${encodeURIComponent(title)}`;
     try {
       const raw = localStorage.getItem('tmdb_filters');
       if (raw) {
         const f = JSON.parse(raw);
         const params = new URLSearchParams();
         params.append('q', primaryTitle);
+        params.append('q', title);
+        if (searchType && searchType !== 'title') params.append('search_by', searchType);
         if (f.year_from) params.append('year_from', f.year_from);
         if (f.year_to) params.append('year_to', f.year_to);
         if (f.with_genres) params.append('with_genres', f.with_genres);
@@ -120,6 +142,12 @@ function Header() {
 
       <form className="search-form" onSubmit={onSubmit} role="search" autoComplete="off">
         <div className="search-inner">
+          <label style={{ marginRight: 8 }}>
+            <select value={searchType} onChange={(e) => setSearchType(e.target.value)}>
+              <option value="title">Title</option>
+              <option value="person">Person</option>
+            </select>
+          </label>
           <div className="search-input-container">
             <input
               className="search-input"
@@ -141,6 +169,7 @@ function Header() {
                 const primaryTitle = s.title || s.name || s.original_title || s.original_name || s.media_type || `#${s.id}`;
                 const year = s.release_date?.slice(0,4) || s.first_air_date?.slice(0,4) || '';
                 const imagePath = s.poster_path || s.profile_path || null;
+                const imagePath = (searchType === 'person') ? s.profile_path : s.poster_path;
                 return (
                 <div
                   key={s.id}
@@ -161,6 +190,9 @@ function Header() {
                   )}
                   <div className="suggestion-meta">
                     <strong className="suggestion-title">{primaryTitle}</strong>
+                    {searchType === 'person' && s.known_for_department && (
+                      <div className="suggestion-sub">{s.known_for_department}</div>
+                    )}
                   </div>
                 </div>
               )})}
