@@ -208,7 +208,8 @@ export default function Search() {
               tabIndex={0}
               style={{ cursor: 'pointer' }}
               onClick={() => navigate(`/movie/${m.id}`)}
-              onKeyDown={(e) => { if (e.key === 'Enter') navigate(`/movie/${m.id}`); }}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') navigate(`/movie/${m.id}`); }}
+            
             >
               {m.poster_path ? (
                 <img

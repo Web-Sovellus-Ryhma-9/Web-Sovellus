@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import Header from "../components/Header";
 
+const API_BASE = process.env.REACT_APP_API_URL || "";
+
 function Stars({ value }) {
   const stars = [];
   for (let i = 1; i <= 5; i++) {
@@ -34,15 +36,14 @@ export default function SpecificMovie() {
 
     async function load() {
       try {
-        const API_BASE = process.env.REACT_APP_API_URL || "";
-        const res = await fetch(`${API_BASE}/tmdb/movie/${id}`);
+        const res = await fetch(`${API_BASE}/tmdb/movie/${encodeURIComponent(id)}`);
         if (!res.ok) throw new Error("tmdb fetch failed");
         const json = await res.json();
         // map TMDB response to our movie shape while keeping raw data
         const mapped = {
           id: json.id,
           title: json.title || json.name || `Movie ${id}`,
-          description: json.overview || "",
+          description: json.overview || json.tagline || "",
           image: json.poster_path ? `https://image.tmdb.org/t/p/w500${json.poster_path}` : null,
           tmdb: json,
         };
@@ -194,7 +195,7 @@ export default function SpecificMovie() {
       <Header />
       <div className="movie-container">
         <div className="movie-grid">
-            <div className="movie-sidebar">
+          <div className="movie-sidebar">
             {movie.image ? (
               <img src={movie.image} alt={movie.title} className="specificmovie-poster" />
             ) : (
@@ -232,11 +233,11 @@ export default function SpecificMovie() {
               {movie.tmdb?.runtime != null && (
                 <span style={{ marginLeft: 12 }}>Duration: {formatRuntime(movie.tmdb.runtime)}</span>
               )}
-              {movie.tmdb?.genres && movie.tmdb.genres.length > 0 && (
-                <div style={{ marginTop: 6 }}>Genres: {movie.tmdb.genres.map(g => g.name).join(', ')}</div>
-              )}
             </div>
             <div className="avg-rating"><Stars value={Math.round(averageRating())} /> <span style={{ marginLeft: 8 }}>{averageRating()} / 5</span></div>
+            {movie.tmdb?.genres && movie.tmdb.genres.length > 0 && (
+              <div style={{ marginTop: 6 }}>Genres: {movie.tmdb.genres.map(g => g.name).join(', ')}</div>
+            )}
             <p className="movie-description">{movie.description}</p>
 
             <hr />

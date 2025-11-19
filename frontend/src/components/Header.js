@@ -124,14 +124,26 @@ function Header() {
     };
   }, [query, API_BASE]);
 
-  function onSelectSuggestion(title) {
-    let searchPath = `/search?q=${encodeURIComponent(title)}`;
+  function onSelectSuggestion(item) {
+    const primaryTitle = item.title || item.name || item.original_title || item.original_name || `#${item.id}`;
+
+    // If this looks like a movie result, go straight to the movie page
+    const isMovie = Boolean(item.title || item.media_type === 'movie' || item.release_date);
+    if (isMovie && item.id) {
+      navigate(`/movie/${item.id}`);
+      setShowSuggestions(false);
+      setQuery(primaryTitle);
+      return;
+    }
+
+    // Fallback: navigate to search page preserving filters
+    let searchPath = `/search?q=${encodeURIComponent(primaryTitle)}`;
     try {
       const raw = localStorage.getItem('tmdb_filters');
       if (raw) {
         const f = JSON.parse(raw);
         const params = new URLSearchParams();
-        params.append('q', title);
+        params.append('q', primaryTitle);
         if (searchType && searchType !== 'title') params.append('search_by', searchType);
         if (f.year_from) params.append('year_from', f.year_from);
         if (f.year_to) params.append('year_to', f.year_to);
@@ -141,7 +153,7 @@ function Header() {
     } catch (e) {}
     navigate(searchPath);
     setShowSuggestions(false);
-    setQuery(title);
+    setQuery(primaryTitle);
   }
 
   function handleSuggestionClick(s, primaryTitle) {
@@ -219,14 +231,14 @@ function Header() {
                 const year = s.release_date?.slice(0,4) || s.first_air_date?.slice(0,4) || '';
                 const imagePath = (searchType === 'person') ? s.profile_path : s.poster_path;
                 return (
-                  <div
-                    key={s.id}
-                    onClick={() => handleSuggestionClick(s, primaryTitle)}
-                    className="suggestion-item"
-                    role="button"
-                    tabIndex={0}
-                    onKeyDown={(e) => { if (e.key === 'Enter') handleSuggestionClick(s, primaryTitle); }}
-                  >
+                <div
+                  key={s.id}
+                  onClick={() => handleSuggestionClick(s, primaryTitle)}
+                  className="suggestion-item"
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleSuggestionClick(s, primaryTitle); }}
+                >
                   {imagePath ? (
                     <img
                       src={`https://image.tmdb.org/t/p/w92${imagePath}`}

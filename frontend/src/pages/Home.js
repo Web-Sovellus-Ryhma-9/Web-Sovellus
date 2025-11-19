@@ -28,6 +28,8 @@ export default function Home() {
     fetchNowPlaying();
   }, []);
 
+  const navigate = useNavigate();
+
   // We'll auto-scroll the wrapper's scrollLeft for a smooth, pausable loop.
   const wrapperRef = useRef(null);
   const trackRef = useRef(null);
@@ -35,7 +37,6 @@ export default function Home() {
   const rafId = useRef(null);
   const lastTs = useRef(null);
   const [isPaused, setIsPaused] = useState(false);
-  const navigate = useNavigate();
   // scrolling speed in pixels per second
   const speedPxPerSec = 80;
 
@@ -170,7 +171,7 @@ export default function Home() {
                       role="button"
                       tabIndex={0}
                       onClick={() => navigate(`/movie/${m.id}`)}
-                      onKeyDown={(e) => { if (e.key === 'Enter') navigate(`/movie/${m.id}`); }}
+                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') navigate(`/movie/${m.id}`); }}
                     >
                       {m.poster_path ? (
                         <img className="movie-poster" src={`${TMDB_IMAGE}${m.poster_path}`} alt={m.title} />
