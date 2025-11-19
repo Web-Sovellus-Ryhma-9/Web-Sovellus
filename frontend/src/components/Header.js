@@ -174,6 +174,7 @@ function Header() {
         const raw = localStorage.getItem('tmdb_filters');
         if (raw) {
           const f = JSON.parse(raw);
+          if (f.year_from) params.append('year_from', f.year_from);
           if (f.year_to) params.append('year_to', f.year_to);
           if (f.with_genres) params.append('with_genres', f.with_genres);
         }
