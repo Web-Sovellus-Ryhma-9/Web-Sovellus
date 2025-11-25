@@ -10,7 +10,7 @@ export default function CreateGroup() {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
-  async function handleSubmit(e) {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!name.trim()) {
       setError("Anna ryhmälle nimi.");
@@ -21,32 +21,34 @@ export default function CreateGroup() {
     setError(null);
 
     try {
-      const res = await fetch("/api/groups", {
+      const API = process.env.REACT_APP_API_URL || "";
+      const token = localStorage.getItem("token");
+      const body = { group_name: name.trim(), description: description.trim() };
+
+      const res = await fetch(`${API}/groups/creategroup`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: name.trim(), description: description.trim() }),
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify(body),
       });
 
-      if (res.ok) {
-        const data = await res.json().catch(() => null);
-        if (data && data.id) {
-          navigate(`/group/${data.id}`);
-        } else {
-          navigate("/owngroups");
-        }
-        return;
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        throw new Error(data.error || data.message || `HTTP ${res.status}`);
       }
 
-      throw new Error("server error");
-    } catch (e) {
-      const local = { id: `local-${Date.now()}`, name: name.trim(), description: description.trim() };
-      const existing = JSON.parse(localStorage.getItem("localGroups") || "[]");
-      localStorage.setItem("localGroups", JSON.stringify([local, ...existing]));
-      navigate("/owngroups");
+      alert("Luonti onnistui.");
+      navigate("/OwnGroups"); // React Router SPA-navigointi
+    } catch (err) {
+      console.error("[CreateGroup] error:", err);
+      setError(err.message || "Virhe tapahtui");
     } finally {
       setSubmitting(false);
     }
-  }
+  };
 
   return (
     <div>
@@ -60,7 +62,7 @@ export default function CreateGroup() {
             <input
               className="input-field"
               value={name}
-              onChange={e => setName(e.target.value)}
+              onChange={(e) => setName(e.target.value)}
               disabled={submitting}
               placeholder="Anna ryhmän nimi"
             />
@@ -71,7 +73,7 @@ export default function CreateGroup() {
             <textarea
               className="textarea-field"
               value={description}
-              onChange={e => setDescription(e.target.value)}
+              onChange={(e) => setDescription(e.target.value)}
               disabled={submitting}
               placeholder="Lyhyt kuvaus ryhmästä"
             />
