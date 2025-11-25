@@ -4,6 +4,8 @@ import "dotenv/config";
 
 import tmdbRouter from "./routers/tmdb_router.js";
 import accountRouter from "./routers/account_router.js";
+import groupListRouter from "./routers/groupList_router.js";
+
 
 
 const app = express();
@@ -19,6 +21,7 @@ app.get("/", async (req, res) => {
 
 app.use("/tmdb", tmdbRouter);
 app.use("/auth", accountRouter);
+app.use("/groups", groupListRouter);
 // Note: `/book` routes are not mounted because `book` table was removed from the DB schema
 
 app.listen(port, () => {
