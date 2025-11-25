@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS groupList (
   group_name VARCHAR(255) NOT NULL,
   role_status INTEGER NOT NULL DEFAULT 3, -- 1=admin, 2=member, 3=not member
   created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
 
 -- FavouriteList table: stores per-account favourite lists
 -- Use lowercase table name so Postgres unquoted identifiers match
