@@ -25,6 +25,7 @@ export default function SpecificMovie() {
   const [localGroups, setLocalGroups] = useState([]);
   const [selectedGroup, setSelectedGroup] = useState("");
   const [joining, setJoining] = useState(false);
+  const [loggedIn, setLoggedIn] = useState(!!localStorage.getItem("token"));
 
   // review form
   const [rating, setRating] = useState(5);
@@ -71,9 +72,29 @@ export default function SpecificMovie() {
         if (!cancelled) setReviews(local);
       }
 
-      // load favorites
-      const fav = JSON.parse(localStorage.getItem("favorites") || "[]");
-      if (!cancelled) setFavorites(fav);
+      // load favorites: prefer server-side per-account favourites when logged in
+      const token = localStorage.getItem("token");
+      if (token) {
+        try {
+          const rf = await fetch(`${API_BASE}/favorites`, { headers: { Authorization: `Bearer ${token}` } });
+          if (rf.ok) {
+            const favJson = await rf.json();
+            // map server shape { movie_id, title } -> { id, title }
+            const fav = (favJson || []).map(f => ({ id: String(f.movie_id), title: f.title || null }));
+            if (!cancelled) setFavorites(fav);
+          } else {
+            // fallback to localStorage
+            const fav = JSON.parse(localStorage.getItem("favorites") || "[]");
+            if (!cancelled) setFavorites(fav);
+          }
+        } catch (e) {
+          const fav = JSON.parse(localStorage.getItem("favorites") || "[]");
+          if (!cancelled) setFavorites(fav);
+        }
+      } else {
+        const fav = JSON.parse(localStorage.getItem("favorites") || "[]");
+        if (!cancelled) setFavorites(fav);
+      }
 
       // load local groups (created by user)
       const lg = JSON.parse(localStorage.getItem("localGroups") || "[]");
@@ -88,6 +109,15 @@ export default function SpecificMovie() {
     };
   }, [id]);
 
+  // keep loggedIn state in sync with localStorage (helps if user logs in/out in another tab)
+  useEffect(() => {
+    function onStorage(e) {
+      if (e.key === 'token') setLoggedIn(!!e.newValue);
+    }
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, []);
+
   function isFavorite() {
     return favorites.some(f => String(f.id) === String(id));
   }
@@ -98,8 +128,11 @@ export default function SpecificMovie() {
       const next = favorites.filter(f => String(f.id) !== String(id));
       setFavorites(next);
       localStorage.setItem("favorites", JSON.stringify(next));
+      // attempt server delete if logged in
       try {
-        await fetch(`/api/favorites/${id}`, { method: "DELETE" });
+        const token = localStorage.getItem("token");
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+        await fetch(`${API_BASE}/favorites/${encodeURIComponent(id)}`, { method: "DELETE", headers });
       } catch (e) {
         // ignore
       }
@@ -110,8 +143,12 @@ export default function SpecificMovie() {
     const next = [newFav, ...favorites];
     setFavorites(next);
     localStorage.setItem("favorites", JSON.stringify(next));
+    // attempt server add if logged in
     try {
-      await fetch(`/api/favorites`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(newFav) });
+      const token = localStorage.getItem("token");
+      const headers = { "Content-Type": "application/json" };
+      if (token) headers.Authorization = `Bearer ${token}`;
+      await fetch(`${API_BASE}/favorites`, { method: "POST", headers, body: JSON.stringify({ id: String(newFav.id), title: newFav.title }) });
     } catch (e) {
       // ignore
     }
@@ -205,9 +242,19 @@ export default function SpecificMovie() {
             )}
 
             <div className="movie-actions">
-              <button onClick={toggleFavorite} className="btn">
+              <button
+                onClick={toggleFavorite}
+                className="btn"
+                disabled={!loggedIn && !isFavorite()}
+                title={!loggedIn && !isFavorite() ? 'Kirjaudu sisään lisätäksesi suosikkeihin' : undefined}
+              >
                 {isFavorite() ? "Poista suosikeista" : "Lisää suosikkeihin"}
               </button>
+              {!loggedIn && !isFavorite() && (
+                <div style={{ marginTop: 6 }}>
+                  <a href="/login">Kirjaudu sisään lisätäksesi suosikkeihin</a>
+                </div>
+              )}
             </div>
 
             <div className="movie-actions">
