@@ -26,6 +26,7 @@ export default function SpecificMovie() {
   const [selectedGroup, setSelectedGroup] = useState("");
   const [joining, setJoining] = useState(false);
   const [loggedIn, setLoggedIn] = useState(!!localStorage.getItem("token"));
+  const [account, setAccount] = useState(null);
 
   // review form
   const [rating, setRating] = useState(5);
@@ -61,12 +62,21 @@ export default function SpecificMovie() {
           });
       }
 
-      // load reviews
+      // load reviews (use API_BASE for consistency and map server fields)
       try {
-        const r = await fetch(`/api/movies/${id}/reviews`);
+        const r = await fetch(`${API_BASE}/movies/${id}/reviews`);
         if (!r.ok) throw new Error("no reviews api");
         const rev = await r.json();
-        if (!cancelled) setReviews(rev);
+        // map server shape { id/ review_id, username, created_at } -> { id, rating, comment, user, date, account_id }
+        const mapped = (rev || []).map(item => ({
+          id: item.id || item.review_id,
+          rating: item.rating,
+          comment: item.comment,
+          user: item.username || item.user || 'Anonyymi',
+          date: item.created_at || item.date || new Date().toISOString(),
+          account_id: item.account_id || null,
+        }));
+        if (!cancelled) setReviews(mapped);
       } catch (e) {
         const local = JSON.parse(localStorage.getItem(`movieReviews:${id}`) || "[]");
         if (!cancelled) setReviews(local);
@@ -116,6 +126,16 @@ export default function SpecificMovie() {
     }
     window.addEventListener('storage', onStorage);
     return () => window.removeEventListener('storage', onStorage);
+  }, []);
+
+  // load account info from localStorage
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('account');
+      if (raw) setAccount(JSON.parse(raw));
+    } catch (e) {
+      setAccount(null);
+    }
   }, []);
 
   function isFavorite() {
@@ -179,7 +199,12 @@ export default function SpecificMovie() {
 
   async function submitReview(e) {
     e.preventDefault();
-    if (!rating || rating < 1 || rating > 5) return alert("Provide a rating between 1 and 5");
+    if (!rating || rating < 1 || rating > 5) return alert("Anna arvostelu 1-5");
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('Kirjaudu sisään kirjoittaaksesi arvostelun.');
+      return;
+    }
     setSubmittingReview(true);
     const rev = { id: `local-${Date.now()}`, rating, comment: comment.trim(), user: "You", date: new Date().toISOString() };
 
@@ -187,13 +212,57 @@ export default function SpecificMovie() {
     const next = [rev, ...reviews];
     setReviews(next);
     try {
-      const res = await fetch(`/api/movies/${id}/reviews`, {
+      const headers = { "Content-Type": "application/json", Authorization: `Bearer ${token}` };
+      const res = await fetch(`${API_BASE}/movies/${id}/reviews`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({ rating: rev.rating, comment: rev.comment }),
       });
+      if (res.status === 409) {
+        alert('Olet jo arvostellut tämän elokuvan.');
+        // re-fetch authoritative reviews
+        try {
+          const rr = await fetch(`${API_BASE}/movies/${id}/reviews`);
+          if (rr.ok) {
+            const j = await rr.json();
+            const mapped = (j || []).map(item => ({
+              id: item.id || item.review_id,
+              rating: item.rating,
+              comment: item.comment,
+              user: item.username || item.user || 'Anonyymi',
+              date: item.created_at || item.date || new Date().toISOString(),
+              account_id: item.account_id || null,
+            }));
+            setReviews(mapped);
+          }
+        } catch (e) {
+          // ignore
+        }
+        setSubmittingReview(false);
+        setComment("");
+        setRating(5);
+        return;
+      }
       if (!res.ok) throw new Error("post failed");
-      // if server returns created review, replace local id (skip for simplicity)
+      // re-fetch authoritative reviews so usernames/dates are correct
+      try {
+        const rr = await fetch(`${API_BASE}/movies/${id}/reviews`);
+        if (rr.ok) {
+          const j = await rr.json();
+          const mapped = (j || []).map(item => ({
+            id: item.id || item.review_id,
+            rating: item.rating,
+            comment: item.comment,
+            user: item.username || item.user || 'Anonyymi',
+            date: item.created_at || item.date || new Date().toISOString(),
+          }));
+          setReviews(mapped);
+          // clear any persisted local optimistic reviews for this movie
+          localStorage.removeItem(`movieReviews:${id}`);
+        }
+      } catch (e) {
+        // ignore re-fetch errors
+      }
     } catch (e) {
       // persist locally
       const existing = JSON.parse(localStorage.getItem(`movieReviews:${id}`) || "[]");
@@ -310,16 +379,44 @@ export default function SpecificMovie() {
               <p>No reviews yet.</p>
             ) : (
               <div className="reviews-list">
-                {reviews.map(r => (
-                  <div key={r.id} className="review-item">
-                    <div className="review-header">
-                      <div style={{ fontWeight: 600 }}>{r.user || "Anonymous"}</div>
-                      <div><Stars value={Number(r.rating) || 0} /></div>
-                    </div>
-                    {r.comment && <div className="review-comment">{r.comment}</div>}
-                    <div className="review-date">{new Date(r.date || Date.now()).toLocaleString()}</div>
-                  </div>
-                ))}
+                    {reviews.map(r => (
+                      <div key={r.id} className="review-item">
+                        <div className="review-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <div style={{ fontWeight: 600 }}>{r.user || "Anonyymi"}</div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <Stars value={Number(r.rating) || 0} />
+                            {loggedIn && account && r.account_id && Number(r.account_id) === Number(account.account_id) && (
+                              <button className="btn" onClick={async () => {
+                                if (!confirm('Poistetaanko arvostelusi?')) return;
+                                try {
+                                  const token = localStorage.getItem('token');
+                                  const res = await fetch(`${API_BASE}/movies/${id}/reviews`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+                                  if (!res.ok) throw new Error('delete failed');
+                                  // re-fetch reviews
+                                  const rr = await fetch(`${API_BASE}/movies/${id}/reviews`);
+                                  if (rr.ok) {
+                                    const j = await rr.json();
+                                    const mapped = (j || []).map(item => ({
+                                      id: item.id || item.review_id,
+                                      rating: item.rating,
+                                      comment: item.comment,
+                                      user: item.username || item.user || 'Anonyymi',
+                                      date: item.created_at || item.date || new Date().toISOString(),
+                                      account_id: item.account_id || null,
+                                    }));
+                                    setReviews(mapped);
+                                  }
+                                } catch (e) {
+                                  alert('Arvostelun poisto epäonnistui');
+                                }
+                              }}>Poista</button>
+                            )}
+                          </div>
+                        </div>
+                        {r.comment && <div className="review-comment">{r.comment}</div>}
+                        <div className="review-date">{new Date(r.date || Date.now()).toLocaleString(undefined, { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
+                      </div>
+                    ))}
               </div>
             )}
           </div>

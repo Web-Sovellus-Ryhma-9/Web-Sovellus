@@ -27,7 +27,7 @@ export default function Profile() {
           if (!res.ok) throw new Error("no api");
           const data = await res.json();
           // map server { movie_id, title } -> { id, title }
-          let mapped = (data || []).map(f => ({ id: String(f.movie_id), title: f.title }));
+          let mapped = (data || []).map(f => ({ id: String(f.movie_id), title: f.title, listId: f.favourite_id, listName: f.movielist || f.Movielist }));
           // fetch thumbnails (TMDB proxy) in parallel
           try {
             const thumbs = await Promise.all(
@@ -162,14 +162,26 @@ export default function Profile() {
               <button className="btn profile-btn">My Groups</button>
             </Link>
 
-            <Link to="/sharedfavorite" style={{ textDecoration: "none" }}>
-              <button className="btn profile-btn">Share Your Favorites</button>
-            </Link>
-            <button onClick={deleteAccount} className="btn profile-btn danger">Delete Account</button>
+            <button
+              className="btn profile-btn"
+              onClick={() => {
+                if (favorites && favorites.length > 0 && favorites[0].listId) {
+                  const listId = favorites[0].listId;
+                  const shareUrl = `${window.location.origin}/sharedfavorite?list=${encodeURIComponent(listId)}`;
+                  navigator.clipboard.writeText(shareUrl).then(() => alert('Jaettu linkki kopioitu leikepöydälle: ' + shareUrl));
+                } else {
+                  alert('Luo suosikkeja jotta voit jakaa listan.');
+                }
+              }}
+            >
+              Jaa suosikkisi
+            </button>
+            <button onClick={deleteAccount} className="btn profile-btn danger">Poista tili</button>
           </div>
 
           <div style={{ flex: 1 }}>
-            <h3>My Favorites List</h3>
+            <h3>Oma suosikkilista</h3>
+            {/* Copy-link moved to sidebar; no inline copy button needed here */}
             {loading ? (
               <p>Loading favorites…</p>
             ) : favorites.length === 0 ? (

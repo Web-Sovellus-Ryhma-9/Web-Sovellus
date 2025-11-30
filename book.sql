@@ -37,3 +37,16 @@ CREATE TABLE IF NOT EXISTS favourite_items (
   CONSTRAINT fk_favourite_list FOREIGN KEY (favourite_id) REFERENCES favouritelist(favourite_id) ON DELETE CASCADE,
   CONSTRAINT uniq_favitem UNIQUE (favourite_id, movie_id)
 );
+
+-- Reviews table: store movie reviews so that users can post and others can read them
+DROP TABLE IF EXISTS reviews;
+CREATE TABLE IF NOT EXISTS reviews (
+  review_id SERIAL PRIMARY KEY,
+  movie_id VARCHAR(255) NOT NULL,
+  account_id INT,
+  username VARCHAR(255),
+  rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
+  comment TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+  CONSTRAINT fk_review_account FOREIGN KEY (account_id) REFERENCES account(account_id) ON DELETE SET NULL
+);
