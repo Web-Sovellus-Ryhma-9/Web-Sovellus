@@ -12,8 +12,8 @@ export default function OwnGroups() {
   const API_BASE = process.env.REACT_APP_API_URL || "";
   const TEST_MODE = false; // set true to use local TEST_GROUPS
   const TEST_GROUPS = [
-    { group_id: 1, group_name: "Demo ryhmä 1", description: "Kuvaus 1", image: null },
-    { group_id: 2, group_name: "Demo ryhmä 2", description: "Kuvaus 2", image: null },
+    { group_id: 1, group_name: "Demo group 1", description: "Description 1", image: null },
+    { group_id: 2, group_name: "Demo group 2", description: "Description 2", image: null },
   ];
 
   useEffect(() => {
@@ -50,7 +50,7 @@ export default function OwnGroups() {
           console.error("OwnGroups: fetch failed", res.status, text);
           if (!cancelled) {
             setGroups([]);
-            setError("Palvelinvirhe haettaessa omia ryhmiä");
+            setError("Server error while loading own groups.");
           }
           return;
         }
@@ -66,7 +66,7 @@ export default function OwnGroups() {
         console.error("OwnGroups: error", e);
         if (!cancelled) {
           setGroups([]);
-          setError("Virhe haettaessa ryhmiä");
+          setError("Error loading own groups.");
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -89,17 +89,17 @@ export default function OwnGroups() {
       <Header />
       <div className="page-container">
         <div className="page-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <h2 style={{ margin: 0 }}>Omat ryhmät</h2>
+          <h2 style={{ margin: 0 }}>Own Groups</h2>
           <div className="header-actions">
             <Link to="/creategroup" style={{ textDecoration: "none" }}>
-              <button className="btn primary">Luo ryhmä</button>
+              <button className="btn primary">Create Group</button>
             </Link>
           </div>
         </div>
 
-        {loading && <div>Ladataan...</div>}
+        {loading && <div>Loading...</div>}
         {error && <div className="error-text">{error}</div>}
-        {!loading && groups.length === 0 && <div>Ei ryhmiä.</div>}
+        {!loading && groups.length === 0 && <div>No groups.</div>}
 
         <div className="groups-list">
           {groups.map((g) => (
@@ -145,7 +145,7 @@ export default function OwnGroups() {
 
               <div className="group-action" style={{ marginLeft: 12 }}>
                 <button className="btn" onClick={() => handleManage(g)}>
-                  Hallinnoi
+                  Manage
                 </button>
               </div>
             </div>

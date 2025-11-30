@@ -5,14 +5,14 @@ import "./styles/pagestyles.css";
 export default function HandleGroup() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showRename, setShowRename] = useState(false);
-  const [groupName, setGroupName] = useState("Ryhmän nimi (placeholder)");
+  const [groupName, setGroupName] = useState("Group name (placeholder)");
   const [newName, setNewName] = useState("");
 
   // PLACEHOLDERS
   const [requests, setRequests] = useState([
-    { id: "u1", username: "Käyttäjä1" },
-    { id: "u2", username: "Käyttäjä2" },
-    { id: "u3", username: "Käyttäjä3" },
+    { id: "u1", username: "User1" },
+    { id: "u2", username: "User2" },
+    { id: "u3", username: "User3" },
   ]);
 
   function handleConfirmDelete() {
@@ -51,19 +51,19 @@ export default function HandleGroup() {
                 className="btn"
                 onClick={() => setShowDeleteConfirm(true)}
               >
-                Poista ryhmä
+                Delete Group
               </button>
               <button className="btn" onClick={handleOpenRename}>
-                Muokkaa ryhmän nimeä
+                Rename Group
               </button>
             </div>
           </aside>
 
           <section className="handle-group-main">
             <div className="requests-section">
-              <h3 className="requests-header">Odottavat pyynnöt</h3>
+              <h3 className="requests-header">Pending Requests</h3>
               {requests.length === 0 ? (
-                <p className="muted">Ei odottavia pyyntöjä.</p>
+                <p className="muted">No pending requests.</p>
               ) : (
                 <ul className="request-list">
                   {requests.map((r) => (
@@ -73,16 +73,16 @@ export default function HandleGroup() {
                         <button
                           className="btn success"
                           onClick={() => handleAccept(r.id)}
-                          aria-label={`Hyväksy ${r.username}`}
+                          aria-label={`Accept ${r.username}`}
                         >
-                          Hyväksy
+                          Accept
                         </button>
                         <button
                           className="btn danger"
                           onClick={() => handleReject(r.id)}
-                          aria-label={`Hylkää ${r.username}`}
+                          aria-label={`Reject ${r.username}`}
                         >
-                          Hylkää
+                          Reject
                         </button>
                       </div>
                     </li>
@@ -106,11 +106,11 @@ export default function HandleGroup() {
             aria-labelledby="delete-group-title"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 id="delete-group-title">Poista ryhmä</h3>
-            <p>Oletko varma, että haluat poistaa ryhmän? Tätä toimintoa ei voi perua.</p>
+            <h3 id="delete-group-title">Delete Group</h3>
+            <p>Are you sure you want to delete the group? This action cannot be undone.</p>
             <div className="modal-actions">
               <button className="btn" onClick={() => setShowDeleteConfirm(false)}>
-                Peruuta
+                Cancel
               </button>
               <button className="btn danger" onClick={handleConfirmDelete}>
                 Poista
@@ -132,25 +132,25 @@ export default function HandleGroup() {
             aria-labelledby="rename-group-title"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 id="rename-group-title">Muokkaa ryhmän nimeä</h3>
+            <h3 id="rename-group-title">Rename Group</h3>
             <form className="form-grid" onSubmit={handleSaveRename}>
               <label className="label" htmlFor="rename-group-input">
-                Ryhmän nimi
+                Group Name
                 <input
                   id="rename-group-input"
                   className="input-field"
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
-                  placeholder="Anna uusi ryhmän nimi"
+                  placeholder="Enter new group name"
                   autoFocus
                 />
               </label>
               <div className="modal-actions">
                 <button type="button" className="btn" onClick={() => setShowRename(false)}>
-                  Peruuta
+                  Cancel
                 </button>
                 <button type="submit" className="btn primary" disabled={!newName.trim()}>
-                  Tallenna
+                  Save
                 </button>
               </div>
             </form>

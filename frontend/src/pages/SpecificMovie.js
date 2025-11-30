@@ -175,7 +175,7 @@ export default function SpecificMovie() {
   }
 
   async function joinSelectedGroup() {
-    if (!selectedGroup) return alert("Valitse ryhmä ensin");
+    if (!selectedGroup) return alert("Select a group first");
     setJoining(true);
     try {
       await fetch(`/api/groups/${selectedGroup}/join`, { method: "POST" });
@@ -184,14 +184,14 @@ export default function SpecificMovie() {
       memberships[selectedGroup] = memberships[selectedGroup] || [];
       if (!memberships[selectedGroup].includes(id)) memberships[selectedGroup].push(id);
       localStorage.setItem("groupMemberships", JSON.stringify(memberships));
-      alert("Lisätty ryhmään.");
+      alert("Added to group.");
     } catch (e) {
       // local fallback
       const memberships = JSON.parse(localStorage.getItem("groupMemberships") || "{}");
       memberships[selectedGroup] = memberships[selectedGroup] || [];
       if (!memberships[selectedGroup].includes(id)) memberships[selectedGroup].push(id);
       localStorage.setItem("groupMemberships", JSON.stringify(memberships));
-      alert("Lisätty paikallisesti ryhmään (palvelin ei vastannut).");
+      alert("Added locally to group (server did not respond).");
     } finally {
       setJoining(false);
     }
@@ -206,7 +206,7 @@ export default function SpecificMovie() {
       return;
     }
     setSubmittingReview(true);
-    const rev = { id: `local-${Date.now()}`, rating, comment: comment.trim(), user: "Sinä", date: new Date().toISOString() };
+    const rev = { id: `local-${Date.now()}`, rating, comment: comment.trim(), user: "You", date: new Date().toISOString() };
 
     // optimistic UI
     const next = [rev, ...reviews];
@@ -291,7 +291,7 @@ export default function SpecificMovie() {
     <div>
       <Header />
       <div className="page-container">
-        <p>Ladataan elokuvaa…</p>
+        <p>Loading movie…</p>
       </div>
     </div>
   );
@@ -315,27 +315,27 @@ export default function SpecificMovie() {
                 onClick={toggleFavorite}
                 className="btn"
                 disabled={!loggedIn && !isFavorite()}
-                title={!loggedIn && !isFavorite() ? 'Kirjaudu sisään lisätäksesi suosikkeihin' : undefined}
+                title={!loggedIn && !isFavorite() ? 'Log in to add to favorites' : undefined}
               >
-                {isFavorite() ? "Poista suosikeista" : "Lisää suosikkeihin"}
+                {isFavorite() ? "Remove from favorites" : "Add to favorites"}
               </button>
               {!loggedIn && !isFavorite() && (
                 <div style={{ marginTop: 6 }}>
-                  <a href="/login">Kirjaudu sisään lisätäksesi suosikkeihin</a>
+                  <a href="/login">Log in to add to favorites</a>
                 </div>
               )}
             </div>
 
             <div className="movie-actions">
-              <div style={{ marginBottom: 6 }}>Lisää ryhmään</div>
+              <div style={{ marginBottom: 6 }}>Add to group</div>
               <select value={selectedGroup} onChange={e => setSelectedGroup(e.target.value)} className="group-select">
-                <option value="">-- Valitse ryhmä --</option>
+                <option value="">-- Select group --</option>
                 {localGroups.map(g => (
                   <option key={g.id} value={g.id}>{g.name}</option>
                 ))}
               </select>
               <button onClick={joinSelectedGroup} disabled={joining} className="btn" style={{ marginTop: 8 }}>
-                Lisää ryhmään
+                Add to group
               </button>
             </div>
           </div>
@@ -358,25 +358,25 @@ export default function SpecificMovie() {
 
             <hr />
 
-            <h3>Kirjoita arvostelu</h3>
+            <h3>Write a review</h3>
             <form onSubmit={submitReview} className="review-form">
               <div>
-                <label>Asteikolla 1-5:</label>
+                <label>Rating 1-5:</label>
                 <select value={rating} onChange={e => setRating(Number(e.target.value))} style={{ marginLeft: 8 }}>
                   {[5,4,3,2,1].map(n => <option key={n} value={n}>{n}</option>)}
                 </select>
               </div>
 
-              <textarea value={comment} onChange={e => setComment(e.target.value)} placeholder="Kirjoita kommentti (valinnainen)" className="textarea-field" />
+              <textarea value={comment} onChange={e => setComment(e.target.value)} placeholder="Write a comment (optional)" className="textarea-field" />
 
               <div>
-                <button type="submit" disabled={submittingReview} className="btn primary">{submittingReview ? "Lähetetään…" : "Lisää arvostelu"}</button>
+                <button type="submit" disabled={submittingReview} className="btn primary">{submittingReview ? "Submitting…" : "Add review"}</button>
               </div>
             </form>
 
-            <h3 className="" style={{ marginTop: 24 }}>Muiden käyttäjien arvostelut</h3>
+            <h3 className="" style={{ marginTop: 24 }}>Other users' reviews</h3>
             {reviews.length === 0 ? (
-              <p>Ei arvosteluja vielä.</p>
+              <p>No reviews yet.</p>
             ) : (
               <div className="reviews-list">
                     {reviews.map(r => (

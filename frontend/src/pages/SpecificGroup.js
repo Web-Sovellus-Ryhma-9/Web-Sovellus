@@ -8,26 +8,26 @@ export default function SpecificGroup() {
   const { id } = useParams();
 
   const placeholderMovies = [
-    { id: 1, title: "Elokuva 1", image: null },
-    { id: 2, title: "Elokuva 2", image: null },
-    { id: 3, title: "Elokuva 3", image: null },
-    { id: 4, title: "Elokuva 4", image: null },
-    { id: 5, title: "Elokuva 5", image: null },
-    { id: 6, title: "Elokuva 6", image: null },
+    { id: 1, title: "Movie 1", image: null },
+    { id: 2, title: "Movie 2", image: null },
+    { id: 3, title: "Movie 3", image: null },
+    { id: 4, title: "Movie 4", image: null },
+    { id: 5, title: "Movie 5", image: null },
+    { id: 6, title: "Movie 6", image: null },
   ];
 
   const placeholderShowtimes = [
-    { id: "s1", date: "2025-11-20 18:30", title: "Elokuva 1" },
-    { id: "s2", date: "2025-11-21 14:15", title: "Elokuva 2" },
-    { id: "s3", date: "2025-11-22 20:00", title: "Elokuva 3" },
-    { id: "s4", date: "2025-11-23 12:00", title: "Elokuva 4" },
+    { id: "s1", date: "2025-11-20 18:30", title: "Movie 1" },
+    { id: "s2", date: "2025-11-21 14:15", title: "Movie 2" },
+    { id: "s3", date: "2025-11-22 20:00", title: "Movie 3" },
+    { id: "s4", date: "2025-11-23 12:00", title: "Movie 4" },
   ];
 
   const placeholderMembers = [
-    { id: "m1", name: "Jäsen 1" },
-    { id: "m2", name: "Jäsen 2" },
-    { id: "m3", name: "Jäsen 3" },
-    { id: "m4", name: "Jäsen 4" },
+    { id: "m1", name: "Member 1" },
+    { id: "m2", name: "Member 2" },
+    { id: "m3", name: "Member 3" },
+    { id: "m4", name: "Member 4" },
   ];
 
   function handleConfirmLeave() {
@@ -39,11 +39,11 @@ export default function SpecificGroup() {
     <div>
       <Header />
       <div className="page-container group-page">
-        <h2 className="group-title">Ryhmän nimi (placeholder)</h2>
+        <h2 className="group-title">Group Name (placeholder)</h2>
 
         <div className="group-movies-section">
           <label className="section-label" htmlFor="group-movies-grid">
-            Ryhmän elokuvat
+            Group Movies
           </label>
 
           <div id="group-movies-grid" className="group-movie-grid">
@@ -54,7 +54,7 @@ export default function SpecificGroup() {
                     {m.image ? (
                       <img src={m.image} alt={m.title} />
                     ) : (
-                      <div className="group-movie-placeholder">Kuva</div>
+                      <div className="group-movie-placeholder">Image</div>
                     )}
                   </div>
                   <div className="group-movie-name">{m.title}</div>
@@ -66,7 +66,7 @@ export default function SpecificGroup() {
 
         <div className="group-showtimes-section">
           <label className="section-label" htmlFor="group-showtimes-list">
-            Näytösaikoja
+            Showtimes
           </label>
           <div id="group-showtimes-list" className="showtime-list">
             {placeholderShowtimes.map((s) => (
@@ -83,7 +83,7 @@ export default function SpecificGroup() {
         {/* Members + actions */}
         <div className="group-members-section">
           <label className="section-label" htmlFor="group-members-list">
-            Ryhmän jäsenet
+            Group Members
           </label>
           <div className="members-actions-row">
             <ul id="group-members-list" className="member-list">
@@ -96,9 +96,9 @@ export default function SpecificGroup() {
             </ul>
 
             <div className="group-actions">
-              <button className="btn" onClick={() => setShowLeaveConfirm(true)}>Poistu ryhmästä</button>
+              <button className="btn" onClick={() => setShowLeaveConfirm(true)}>Leave Group</button>
               <Link to={`/handlegroup/${id ?? 1}`}>
-                <button className="btn">Hallinnoi ryhmää</button>
+                <button className="btn">Manage Group</button>
               </Link>
             </div>
           </div>
@@ -116,11 +116,11 @@ export default function SpecificGroup() {
               aria-labelledby="leave-group-title"
               onClick={(e) => e.stopPropagation()}
             >
-              <h3 id="leave-group-title">Poistu ryhmästä</h3>
-              <p>Oletko varma, että haluat poistua ryhmästä?</p>
+              <h3 id="leave-group-title">Leave Group</h3>
+              <p>Are you sure you want to leave the group?</p>
               <div className="modal-actions">
-                <button className="btn" onClick={() => setShowLeaveConfirm(false)}>Peruuta</button>
-                <button className="btn danger" onClick={handleConfirmLeave}>Poistu</button>
+                <button className="btn" onClick={() => setShowLeaveConfirm(false)}>Cancel</button>
+                <button className="btn danger" onClick={handleConfirmLeave}>Leave</button>
               </div>
             </div>
           </div>

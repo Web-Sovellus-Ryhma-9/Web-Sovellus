@@ -145,8 +145,8 @@ export default function Home() {
     <div>
       <Header />
       <div className="home-container">
-        <h1>Tervetuloa</h1>
-        <p>Tervetuloa sovellukseen. Käytä ylävalikkoa siirtyäksesi eri sivuille tai hae sisältöä hakupalkin avulla.</p>
+        <h1>Welcome</h1>
+        <p>Welcome to the application. Use the top menu to navigate to different pages or search for content using the search bar.</p>
 
         <h2>Now Playing</h2>
 

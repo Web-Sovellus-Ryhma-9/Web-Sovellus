@@ -205,18 +205,18 @@ function Header() {
         <div className="search-inner">
           <label style={{ marginRight: 8 }}>
             <select value={searchType} onChange={(e) => setSearchType(e.target.value)}>
-              <option value="title">Title</option>
-              <option value="person">Person</option>
+              <option value="title">Search By Title</option>
+              <option value="person">Search By Actor/Actress</option>
             </select>
           </label>
           <div className="search-input-container">
             <input
               className="search-input"
               type="search"
-              placeholder="Hae..."
+              placeholder="Search..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              aria-label="Haku"
+              aria-label="Search"
               onFocus={() => { if (suggestions.length) setShowSuggestions(true); }}
               style={{ width: '100%' }}
             />
@@ -259,12 +259,12 @@ function Header() {
             </div>
             )}
           </div>
-          <button className="search-button" type="submit" aria-label="Hae">Hae</button>
+          <button className="search-button" type="submit" aria-label="Search">Search</button>
         </div>
       </form>
 
-      <nav className="header-right" aria-label="Päävalikko">
-        <button className="nav-button" onClick={() => (window.location.href = "/groups")}>Ryhmät</button>
+      <nav className="header-right" aria-label="Main menu">
+        <button className="nav-button" onClick={() => (window.location.href = "/groups")}>Groups</button>
 
         {account ? (
           <div style={{ position: 'relative', display: 'inline-block' }}>
@@ -282,8 +282,8 @@ function Header() {
 
             {showProfileMenu && (
               <div className="profile-menu">
-                <button onClick={() => { setShowProfileMenu(false); navigate('/profile'); }} className="profile-menu-button">Oma profiili</button>
-                <button onClick={() => { setShowProfileMenu(false); navigate('/owngroups'); }} className="profile-menu-button">Omat ryhmät</button>
+                <button onClick={() => { setShowProfileMenu(false); navigate('/profile'); }} className="profile-menu-button">My Profile</button>
+                <button onClick={() => { setShowProfileMenu(false); navigate('/owngroups'); }} className="profile-menu-button">My Groups</button>
                 <button onClick={() => {
                   // logout
                   localStorage.removeItem('token');
@@ -291,7 +291,7 @@ function Header() {
                   setAccount(null);
                   setShowProfileMenu(false);
                   navigate('/login');
-                }} className="profile-menu-button logout-button">Kirjaudu ulos</button>
+                }} className="profile-menu-button logout-button">Log Out</button>
               </div>
             )}
           </div>
@@ -301,11 +301,11 @@ function Header() {
               className="nav-button"
               onClick={() => (window.location.href = "/login")}
             >
-              Kirjaudu
+              Log In
             </button>
             <button
               className="menu-toggle"
-              aria-label="Valikko"
+              aria-label="Menu"
               onClick={toggleMenu}
             >
               ☰
@@ -316,8 +316,8 @@ function Header() {
 
       {menuOpen && (
         <div className="mobile-nav" role="menu">
-          <button className="nav-button" onClick={() => { setMenuOpen(false); window.location.href = '/groups'; }}>Ryhmät</button>
-          <button className="nav-button" onClick={() => { setMenuOpen(false); window.location.href = '/login'; }}>Kirjaudu</button>
+          <button className="nav-button" onClick={() => { setMenuOpen(false); window.location.href = '/groups'; }}>Groups</button>
+          <button className="nav-button" onClick={() => { setMenuOpen(false); window.location.href = '/login'; }}>Log In</button>
         </div>
       )}
     </header>
