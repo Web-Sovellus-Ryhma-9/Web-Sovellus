@@ -5,6 +5,7 @@ import {
   removeFavoriteFromList,
   getOrCreateDefaultListForAccount,
   findFavoriteByAccountAndMovie,
+  getFavoritesByListId,
 } from "../models/favourite_model.js";
 
 const JWT_SECRET = process.env.JWT_SECRET || "dev_jwt_secret";
@@ -27,7 +28,8 @@ export async function getFavorites(req, res, next) {
     if (!account_id) return res.status(401).json({ error: "Unauthorized" });
 
     const rows = await getFavoritesByAccount(account_id);
-    res.json(rows.map(r => ({ movie_id: r.movie_id, title: r.title })));
+    // include list metadata so frontend can generate share links
+    res.json(rows.map(r => ({ movie_id: r.movie_id, title: r.title, favourite_id: r.favourite_id, movielist: r.movielist || r.Movielist })));
   } catch (err) {
     next(err);
   }
@@ -84,6 +86,23 @@ export async function debugAllFavorites(req, res, next) {
     const sql = `SELECT fi.id, fl.favourite_id, fl.account_id, fl.Movielist, fi.movie_id, fi.title FROM favourite_items fi JOIN favouritelist fl ON fi.favourite_id = fl.favourite_id ORDER BY fi.id DESC`;
     const { rows } = await pool.query(sql);
     res.json(rows);
+  } catch (err) {
+    next(err);
+  }
+}
+
+// Public endpoint to fetch a favourite list by its id (no auth) for sharing
+export async function getPublicList(req, res, next) {
+  try {
+    const favourite_id = req.params.id;
+    if (!favourite_id) return res.status(400).json({ error: 'Missing list id' });
+
+    const rows = await getFavoritesByListId(favourite_id);
+    if (!rows || rows.length === 0) return res.status(404).json({ error: 'List not found or empty' });
+
+    const listName = rows[0].movielist || rows[0].Movielist || 'Favorites';
+    const items = rows.map(r => ({ movie_id: r.movie_id, title: r.title }));
+    res.json({ favourite_id, listName, items });
   } catch (err) {
     next(err);
   }
