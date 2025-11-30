@@ -168,19 +168,19 @@ export default function Profile() {
                 if (favorites && favorites.length > 0 && favorites[0].listId) {
                   const listId = favorites[0].listId;
                   const shareUrl = `${window.location.origin}/sharedfavorite?list=${encodeURIComponent(listId)}`;
-                  navigator.clipboard.writeText(shareUrl).then(() => alert('Jaettu linkki kopioitu leikepöydälle: ' + shareUrl));
+                  navigator.clipboard.writeText(shareUrl).then(() => alert('Shared link copied to clipboard: ' + shareUrl));
                 } else {
-                  alert('Luo suosikkeja jotta voit jakaa listan.');
+                  alert('Create favorites to share a list.');
                 }
               }}
             >
-              Jaa suosikkisi
+              Share your favorites
             </button>
-            <button onClick={deleteAccount} className="btn profile-btn danger">Poista tili</button>
+            <button onClick={deleteAccount} className="btn profile-btn danger">Delete Account</button>
           </div>
 
           <div style={{ flex: 1 }}>
-            <h3>Oma suosikkilista</h3>
+            <h3>My Favorites</h3>
             {/* Copy-link moved to sidebar; no inline copy button needed here */}
             {loading ? (
               <p>Loading favorites…</p>
@@ -198,10 +198,10 @@ export default function Profile() {
                         )}
                       </div>
                       <div style={{ flex: 1 }}>
-                        <Link to={`/movie/${fav.id}`} style={{ textDecoration: 'none', color: '#222', fontWeight: 600 }}>{fav.title || fav.name || 'Nimetön'}</Link>
+                        <Link to={`/movie/${fav.id}`} style={{ textDecoration: 'none', color: '#222', fontWeight: 600 }}>{fav.title || fav.name || 'Unnamed'}</Link>
                       </div>
                       <div>
-                        <button onClick={() => removeFavorite(fav.id)} className="btn">Poista</button>
+                        <button onClick={() => removeFavorite(fav.id)} className="btn">Delete</button>
                       </div>
                     </div>
                   ))}
