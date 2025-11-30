@@ -12,6 +12,18 @@ export async function getFavoritesByAccount(account_id) {
   return rows;
 }
 
+export async function getFavoritesByListId(favourite_id) {
+  const sql = `
+    SELECT fi.movie_id, fi.title, fl.favourite_id, fl.Movielist
+    FROM favourite_items fi
+    JOIN favouritelist fl ON fi.favourite_id = fl.favourite_id
+    WHERE fi.favourite_id = $1
+    ORDER BY fi.id DESC
+  `;
+  const { rows } = await pool.query(sql, [favourite_id]);
+  return rows;
+}
+
 export async function addFavoriteToList(favourite_id, movie_id, title) {
   const sql = `INSERT INTO favourite_items (favourite_id, movie_id, title) VALUES ($1, $2, $3) RETURNING id, movie_id, title`;
   const { rows } = await pool.query(sql, [favourite_id, movie_id, title]);

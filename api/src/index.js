@@ -9,6 +9,7 @@ import groupListRouter from "./routers/groupList_router.js";
 
 
 import favouriteRouter from "./routers/favourite_router.js";
+import reviewsRouter from "./routers/reviews_router.js";
 
 
 
@@ -27,6 +28,7 @@ app.use("/tmdb", tmdbRouter);
 app.use("/auth", accountRouter);
 app.use("/groups", groupListRouter);
 app.use("/favorites", favouriteRouter);
+app.use("/movies", reviewsRouter);
 // Note: `/book` routes are not mounted because `book` table was removed from the DB schema
 
 app.listen(port, () => {
