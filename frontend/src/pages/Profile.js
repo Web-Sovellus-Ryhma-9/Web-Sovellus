@@ -84,7 +84,7 @@ export default function Profile() {
         });
         return;
       } catch (e) {
-        alert("Poisto epäonnistui palvelimella. Yritetään paikallisesti.");
+        alert("Deletion failed on server. Trying locally.");
         const local = JSON.parse(localStorage.getItem("favorites") || "[]").filter(f => f.id !== id);
         localStorage.setItem("favorites", JSON.stringify(local));
         setFavorites(local);
@@ -99,7 +99,7 @@ export default function Profile() {
   }
 
   async function deleteAccount() {
-    const ok = window.confirm("Haluatko varmasti poistaa tilisi? Tämä toiminto on peruuttamaton.");
+    const ok = window.confirm("Are you sure you want to delete your account? This action is irreversible.");
     if (!ok) return;
 
     try {
@@ -115,7 +115,7 @@ export default function Profile() {
         localStorage.removeItem("localGroups");
         localStorage.removeItem("account");
         localStorage.removeItem("token");
-        alert("Tili poistettu.");
+        alert("Account deleted.");
         navigate("/");
         return;
       }
@@ -132,7 +132,7 @@ export default function Profile() {
       localStorage.removeItem("localGroups");
       localStorage.removeItem("account");
       localStorage.removeItem("token");
-      alert("Paikalliset käyttäjätiedot poistettu (palvelin ei vastannut).");
+      alert("Local user data cleared (server did not respond).");
       navigate("/");
     }
   }
@@ -141,7 +141,7 @@ export default function Profile() {
     <div>
       <Header />
       <div className="profile-container">
-        <h2>Profiili</h2>
+        <h2>Profile</h2>
 
         <div className="profile-grid">
           <div className="profile-sidebar">
@@ -151,7 +151,7 @@ export default function Profile() {
               </div>
 
               <div className="profile-userinfo">
-                <div className="profile-username">{account?.username || 'Tuntematon käyttäjä'}</div>
+                <div className="profile-username">{account?.username || 'Unknown user'}</div>
                 <div className="profile-email">{account?.email || ''}</div>
               </div>
             </div>
@@ -159,21 +159,21 @@ export default function Profile() {
 
 
             <Link to="/owngroups" style={{ textDecoration: "none" }}>
-              <button className="btn profile-btn">Omat ryhmät</button>
+              <button className="btn profile-btn">My Groups</button>
             </Link>
 
             <Link to="/sharedfavorite" style={{ textDecoration: "none" }}>
-              <button className="btn profile-btn">Jaa suosikkisi</button>
+              <button className="btn profile-btn">Share Your Favorites</button>
             </Link>
-            <button onClick={deleteAccount} className="btn profile-btn danger">Poista tili</button>
+            <button onClick={deleteAccount} className="btn profile-btn danger">Delete Account</button>
           </div>
 
           <div style={{ flex: 1 }}>
-            <h3>Oma suosikkilista</h3>
+            <h3>My Favorites List</h3>
             {loading ? (
-              <p>Ladataan suosikkeja…</p>
+              <p>Loading favorites…</p>
             ) : favorites.length === 0 ? (
-              <p>Sinulla ei ole suosikkeja vielä.</p>
+              <p>You don't have any favorites yet.</p>
             ) : (
               <div className="favorites-list">
                   {favorites.map(fav => (

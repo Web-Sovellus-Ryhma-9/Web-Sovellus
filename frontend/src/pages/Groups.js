@@ -20,9 +20,9 @@ export default function Groups() {
       } catch (e) {
         if (!cancelled)
           setGroups([
-            { id: 1, name: "Elokuvakerho", description: "Katso ja keskustele elokuvista.", image: null },
-            { id: 2, name: "Sci-Fi ystävät", description: "Uusimmat scifi-elokuvat ja klassikot.", image: null },
-            { id: 3, name: "Dokumentit", description: "Dokumenttielokuvien suositukset ja keskustelu.", image: null },
+            { id: 1, name: "Movie group", description: "Watch and discuss movies.", image: null },
+            { id: 2, name: "Sci-Fi friends", description: "Latest sci-fi movies and classics.", image: null },
+            { id: 3, name: "Documentaries", description: "Recommendations and discussions on documentary films.", image: null },
           ]);
       } finally {
         if (!cancelled) setLoading(false);
@@ -44,18 +44,18 @@ export default function Groups() {
       <Header />
       <div className="page-container">
         <div className="page-header">
-          <h2 style={{ margin: 0 }}>Tutustu ryhmiin</h2>
+          <h2 style={{ margin: 0 }}>Explore Groups</h2>
           <div className="header-actions">
             <Link to="/owngroups" style={{ textDecoration: "none" }}>
-              <button className="btn ghost">Omat ryhmät</button>
+              <button className="btn ghost">My Groups</button>
             </Link>
             <Link to="/creategroup" style={{ textDecoration: "none" }}>
-              <button className="btn primary">Luo ryhmä</button>
+              <button className="btn primary">Create Group</button>
             </Link>
           </div>
         </div>
         {loading ? (
-          <p>Ladataan ryhmiä…</p>
+          <p>Loading groups…</p>
         ) : (
           <div className="groups-list">
             {groups.map(group => (
@@ -64,7 +64,7 @@ export default function Groups() {
                   {group.image ? (
                     <img src={group.image} alt={group.name} />
                   ) : (
-                    <div style={{ color: "#666", fontSize: 12, textAlign: "center" }}>Kuva</div>
+                    <div style={{ color: "#666", fontSize: 12, textAlign: "center" }}>Image</div>
                   )}
                 </div>
 
@@ -86,7 +86,7 @@ export default function Groups() {
                       padding: "8px 16px",
                     }}
                   >
-                    {joinedIds.has(group.id) ? "Odottaa hyväksymistä" : "Liity ryhmään"}
+                    {joinedIds.has(group.id) ? "Pending approval" : "Join Group"}
                   </button>
                 </div>
               </div>

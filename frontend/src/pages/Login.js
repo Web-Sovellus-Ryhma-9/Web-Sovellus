@@ -35,14 +35,14 @@ export default function Login() {
     <div>
       <Header />
       <div className="auth-page-container">        
-        <h2>Kirjaudu</h2>
+        <h2>Login</h2>
         <form className="login-form" onSubmit={handleSubmit}>
           <div>
             <input
               type="text"
               id="username"
               name="username"
-              placeholder="Käyttäjätunnus"
+              placeholder="Username"
               value={formData.username}
               onChange={handleChange}
               required
@@ -53,14 +53,14 @@ export default function Login() {
               type="password"
               id="password"
               name="password"
-              placeholder="Salasana"
+              placeholder="Password"
               value={formData.password}
               onChange={handleChange}
               required
             />
           </div>
-          <span className="nav-text-button" onClick={() => (window.location.href = "/Register")}>Etkö ole rekisteröitynyt? Paina tästä!</span>
-          <button type="Submit">Kirjaudu</button>
+          <span className="nav-text-button" onClick={() => (window.location.href = "/Register")}>Not registered? Click here!</span>
+          <button type="Submit">Login</button>
         </form>
       </div>
     </div>

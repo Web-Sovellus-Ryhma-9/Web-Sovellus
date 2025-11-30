@@ -13,7 +13,7 @@ export default function CreateGroup() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!name.trim()) {
-      setError("Anna ryhmälle nimi.");
+      setError("You must give a group name.");
       return;
     }
 
@@ -40,11 +40,11 @@ export default function CreateGroup() {
         throw new Error(data.error || data.message || `HTTP ${res.status}`);
       }
 
-      alert("Luonti onnistui.");
-      navigate("/OwnGroups"); // React Router SPA-navigointi
+      alert("Creation successful.");
+      navigate("/OwnGroups"); // React Router SPA navigation
     } catch (err) {
       console.error("[CreateGroup] error:", err);
-      setError(err.message || "Virhe tapahtui");
+      setError(err.message || "An error occurred");
     } finally {
       setSubmitting(false);
     }
@@ -54,28 +54,28 @@ export default function CreateGroup() {
     <div>
       <Header />
       <div className="page-container">
-        <h2>Luo ryhmä</h2>
+        <h2>Create Group</h2>
 
         <form onSubmit={handleSubmit} className="form-grid">
           <label className="label">
-            Ryhmän nimi
+            Group name
             <input
               className="input-field"
               value={name}
               onChange={(e) => setName(e.target.value)}
               disabled={submitting}
-              placeholder="Anna ryhmän nimi"
+              placeholder="Enter group name"
             />
           </label>
 
           <label className="label">
-            Kuvaus (valinnainen)
+            Description (optional)
             <textarea
               className="textarea-field"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               disabled={submitting}
-              placeholder="Lyhyt kuvaus ryhmästä"
+              placeholder="Short description of the group"
             />
           </label>
 
@@ -87,16 +87,16 @@ export default function CreateGroup() {
               disabled={submitting}
               className={`btn primary ${submitting ? "disabled" : ""}`}
             >
-              {submitting ? "Luodaan…" : "Luo ryhmä"}
+              {submitting ? "Creating…" : "Create Group"}
             </button>
 
             <button type="button" onClick={() => navigate(-1)} className="btn">
-              Peruuta
+              Cancel
             </button>
           </div>
 
           <small className="small-note">
-            Huom: jos palvelin ei ole käytettävissä, ryhmä tallennetaan paikallisesti selaimeesi (vain demo).
+            Note: if the server is not available, the group will be saved locally in your browser (demo only).
           </small>
         </form>
       </div>

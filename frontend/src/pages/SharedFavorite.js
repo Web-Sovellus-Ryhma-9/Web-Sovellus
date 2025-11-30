@@ -6,8 +6,8 @@ export default function SharedFavorite() {
     <div>
       <Header />
       <div style={{ maxWidth: 900, margin: "2rem auto", padding: "0 1rem" }}>
-        <h2>Jaetut suosikit</h2>
-        <p>Jaettujen suosikkien lista (placeholder).</p>
+        <h2>Shared Favorites</h2>
+        <p>List of shared favorites (placeholder).</p>
       </div>
     </div>
   );

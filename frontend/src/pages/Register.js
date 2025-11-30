@@ -19,7 +19,7 @@ export default function Register() {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (formData.password !== formData.confirmPassword) {
-      alert("Salasanat eivät täsmää!");
+      alert("Passwords do not match.");
       return;
     }
     const API = process.env.REACT_APP_API_URL || "";
@@ -31,12 +31,12 @@ export default function Register() {
       .then(async (res) => {
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || JSON.stringify(data));
-        alert("Rekisteröinti onnistui. Voit nyt kirjautua sisään.");
+        alert("Registration successful. You can now log in.");
         window.location.href = "/login";
       })
       .catch((err) => {
         console.error(err);
-        alert("Rekisteröinti epäonnistui: " + err.message);
+        alert("Registration failed: " + err.message);
       });
   };
   return (
@@ -48,26 +48,26 @@ export default function Register() {
         <form className="register-form" onSubmit={handleSubmit}>
           <div>
             <input type="text" id="username" name="username"
-            placeholder="Käyttäjätunnus"  
+            placeholder="Username"  
             value={formData.username} onChange={handleChange} required/>
           </div>
           <div>
             <input type="email" id="email" name="email" 
-            placeholder="sähköposti"
+            placeholder="Email"
             value={formData.email} onChange={handleChange} required/>
           </div>
           <div>
             <input type="password" id="password" name="password"
-            placeholder="Salasana" 
+            placeholder="Password" 
             value={formData.password} onChange={handleChange} required/>
           </div>
           <div>
             <input type="password" id="confirmPassword" name="confirmPassword"
-            placeholder="Vahvista salasana"
+            placeholder="Confirm Password"
             value={formData.confirmPassword} onChange={handleChange} required/>
           </div>
-          <span className="nav-text-button" onClick={() => (window.location.href = "/login")}>Rekisteröitynyt jo? Kirjaudu sisään!</span>
-          <button type="Submit">Rekisteröidy</button>
+          <span className="nav-text-button" onClick={() => (window.location.href = "/login")}>Already registered? Log in!</span>
+          <button type="Submit">Register</button>
         </form>
         </div>
     </div>
