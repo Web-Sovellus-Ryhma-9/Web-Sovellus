@@ -36,18 +36,18 @@ export default function SharedFavorite() {
     <div>
       <Header />
       <div style={{ maxWidth: 900, margin: "2rem auto", padding: "0 1rem" }}>
-        <h2>Jaetut suosikit</h2>
+        <h2>Shared favorites</h2>
         {!listId ? (
-          <p>Jaa linkki muodossa <code>?list=&lt;listId&gt;</code></p>
+          <p>Share the link in the format <code>?list=&lt;listId&gt;</code></p>
         ) : loading ? (
-          <p>Ladataan jaettua listaa…</p>
+          <p>Loading shared list…</p>
         ) : !list ? (
-          <p>Lista ei löytynyt tai se on tyhjä.</p>
+          <p>List not found or it is empty.</p>
         ) : (
           <div>
-            <h3>{list.listName || 'Jaettu suosikkilista'}</h3>
+            <h3>{list.listName || 'Shared favorite list'}</h3>
             {list.items && list.items.length === 0 ? (
-              <p>Lista on tyhjä.</p>
+              <p>List is empty.</p>
             ) : (
               <SharedItems items={list.items} api={API} />
             )}
@@ -90,7 +90,7 @@ function SharedItems({ items, api }) {
     return () => { cancelled = true; };
   }, [items, api]);
 
-  if (loading) return <p>Ladataan kuvia…</p>;
+  if (loading) return <p>Loading images…</p>;
 
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12 }}>
@@ -104,7 +104,7 @@ function SharedItems({ items, api }) {
             )}
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-            <Link to={`/movie/${item.movie_id}`} style={{ textDecoration: 'none', color: '#222', fontWeight: 600 }}>{item.title || 'Nimetön'}</Link>
+            <Link to={`/movie/${item.movie_id}`} style={{ textDecoration: 'none', color: '#222', fontWeight: 600 }}>{item.title || 'Unnamed'}</Link>
           </div>
         </div>
       ))}
