@@ -5,7 +5,7 @@ import logo from "../assets/logo/PopcornHub_logo.png";
 
 function Header() {
   const [query, setQuery] = useState("");
-  const [searchType, setSearchType] = useState('title'); // 'title' or 'person'
+  const [searchType, setSearchType] = useState('all'); // 'all' | 'movie' | 'tv' | 'person'
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [account, setAccount] = useState(null);
@@ -21,11 +21,13 @@ function Header() {
     e.preventDefault();
     // allow submitting empty query — include saved filters if present
     let searchPath = "/search";
-    try {
-      const raw = localStorage.getItem('tmdb_filters');
-      const params = new URLSearchParams();
-      if (query) params.append('q', query);
-      if (searchType && searchType !== 'title') params.append('search_by', searchType);
+      try {
+        const raw = localStorage.getItem('tmdb_filters');
+        const params = new URLSearchParams();
+        if (query) params.append('q', query);
+      // map header searchType to query params: person -> search_by=person, movie/tv/all -> type
+      if (searchType === 'person') params.append('search_by', 'person');
+      else if (searchType) params.append('type', searchType);
       if (raw) {
         const f = JSON.parse(raw);
         if (f.year_from) params.append('year_from', f.year_from);
@@ -74,19 +76,20 @@ function Header() {
       try {
         const url = (searchType === 'person')
           ? `${API_BASE}/tmdb/search_person?q=${encodeURIComponent(query)}`
-          : `${API_BASE}/tmdb/search?q=${encodeURIComponent(query)}`;
+          : `${API_BASE}/tmdb/search?q=${encodeURIComponent(query)}&type=${encodeURIComponent(searchType)}`;
         const res = await fetch(url);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const json = await res.json();
             // DEBUG: log results returned from backend/TMDB to inspect fields
             console.log('TMDB search results for', query, json.results);
-        let top = (json.results || []).slice(0, 10);
+        const rawResults = (json.results || []).slice(0, 10);
         // If we are searching people, deduplicate identical names (TMDB can contain
         // multiple person entries with the same display name). Keep the entry with
         // the highest popularity or with a profile image when possible.
+        let top;
         if (searchType === 'person') {
           const byName = {};
-          for (const p of top) {
+          for (const p of rawResults) {
             const name = (p.name || '').trim().toLowerCase();
             if (!name) continue;
             if (!byName[name]) {
@@ -108,7 +111,29 @@ function Header() {
           }
           top = Object.values(byName).slice(0, 5);
         } else {
-          top = top.slice(0,5);
+          // When searching "all", the backend may return movies first which
+          // could make the suggestions all movies. Try to include a mix of
+          // movies and tv shows in the top suggestions for better UX.
+          if (searchType === 'all') {
+            const movies = rawResults.filter(r => r.media_type === 'movie');
+            const tvs = rawResults.filter(r => r.media_type === 'tv');
+            const mixed = [];
+            let i = 0;
+            while (mixed.length < 5 && (i < movies.length || i < tvs.length)) {
+              if (i < movies.length) mixed.push(movies[i]);
+              if (mixed.length >= 5) break;
+              if (i < tvs.length) mixed.push(tvs[i]);
+              i++;
+            }
+            // fill remaining slots from rawResults if needed
+            for (const r of rawResults) {
+              if (mixed.length >= 5) break;
+              if (!mixed.includes(r)) mixed.push(r);
+            }
+            top = mixed.slice(0,5);
+          } else {
+            top = rawResults.slice(0,5);
+          }
         }
         setSuggestions(top);
         setShowSuggestions(true);
@@ -130,8 +155,15 @@ function Header() {
 
     // If this looks like a movie result, go straight to the movie page
     const isMovie = Boolean(item.title || item.media_type === 'movie' || item.release_date);
+    const isTv = Boolean(item.name || item.media_type === 'tv' || item.first_air_date);
     if (isMovie && item.id) {
       navigate(`/movie/${item.id}`);
+      setShowSuggestions(false);
+      setQuery(primaryTitle);
+      return;
+    }
+    if (isTv && item.id) {
+      navigate(`/tv/${item.id}`);
       setShowSuggestions(false);
       setQuery(primaryTitle);
       return;
@@ -145,7 +177,9 @@ function Header() {
         const f = JSON.parse(raw);
         const params = new URLSearchParams();
         params.append('q', primaryTitle);
-        if (searchType && searchType !== 'title') params.append('search_by', searchType);
+        // map header searchType into search route params
+        if (searchType === 'person') params.append('search_by', 'person');
+        else if (searchType) params.append('type', searchType);
         if (f.year_from) params.append('year_from', f.year_from);
         if (f.year_to) params.append('year_to', f.year_to);
         if (f.with_genres) params.append('with_genres', f.with_genres);
@@ -159,10 +193,16 @@ function Header() {
 
   function handleSuggestionClick(s, primaryTitle) {
     // If it's a movie title suggestion, go directly to movie page
-    if (searchType === 'title' && s && s.id && s.title) {
+    if ((searchType === 'movie' || (searchType === 'all' && s && s.media_type === 'movie')) && s && s.id && s.title) {
       setShowSuggestions(false);
       setQuery(primaryTitle || s.title || '');
       navigate(`/movie/${s.id}`);
+      return;
+    }
+    if ((searchType === 'tv' || (searchType === 'all' && s && s.media_type === 'tv')) && s && s.id && s.name) {
+      setShowSuggestions(false);
+      setQuery(primaryTitle || s.name || '');
+      navigate(`/tv/${s.id}`);
       return;
     }
 
@@ -208,8 +248,10 @@ function Header() {
         <div className="search-inner">
           <label style={{ marginRight: 8 }}>
             <select value={searchType} onChange={(e) => setSearchType(e.target.value)}>
-              <option value="title">Search By Title</option>
-              <option value="person">Search By Actor/Actress</option>
+              <option value="all">All</option>
+              <option value="movie">Movies</option>
+              <option value="tv">TV-series</option>
+              <option value="person">Celebrities</option>
             </select>
           </label>
           <div className="search-input-container">
@@ -232,7 +274,7 @@ function Header() {
               {!loadingSuggestions && suggestions.map((s) => {
                 const primaryTitle = s.title || s.name || s.original_title || s.original_name || s.media_type || `#${s.id}`;
                 const year = s.release_date?.slice(0,4) || s.first_air_date?.slice(0,4) || '';
-                const imagePath = (searchType === 'person') ? s.profile_path : s.poster_path;
+                const imagePath = s.profile_path || s.poster_path;
                 return (
                 <div
                   key={s.id}

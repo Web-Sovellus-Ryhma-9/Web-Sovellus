@@ -19,6 +19,7 @@ export default function Search() {
   const [genre, setGenre] = useState("");
   const [genresList, setGenresList] = useState([]);
   const [searchBy, setSearchBy] = useState('title'); // 'title' or 'person'
+  const [searchType, setSearchType] = useState('movie'); // 'movie' | 'tv' | 'all'
 
   // load available genres from backend
   useEffect(() => {
@@ -42,10 +43,12 @@ export default function Search() {
     const yt = searchParams.get("year_to") || searchParams.get("yearTo");
     const g = searchParams.get("with_genres") || searchParams.get("genre");
     const sb = searchParams.get('search_by') || 'title';
+    const st = searchParams.get('type') || 'movie';
     if (yf !== null) setYearFrom(String(yf));
     if (yt !== null) setYearTo(String(yt));
     if (g) setGenre(g);
     if (sb) setSearchBy(sb);
+    if (st) setSearchType(st);
   }, [searchParams]);
 
   // persist filters to URL and localStorage when they change
@@ -55,7 +58,10 @@ export default function Search() {
     if (q) params.q = q;
     // preserve search_by when set (so changing filters doesn't drop person search)
     const sb = searchParams.get('search_by') || (searchBy || 'title');
+    const st = searchParams.get('type') || (searchType || 'movie');
     if (sb && sb !== 'title') params.search_by = sb;
+    // always include type so 'all' is honored by backend
+    if (st) params.type = st;
     // sanitize years (remove leading zeros and invalid values)
     const yfNum = yearFrom ? parseInt(yearFrom, 10) : NaN;
     const ytNum = yearTo ? parseInt(yearTo, 10) : NaN;
@@ -72,7 +78,7 @@ export default function Search() {
       if (genre) store.with_genres = genre;
       localStorage.setItem("tmdb_filters", JSON.stringify(store));
     } catch (e) {}
-  }, [yearFrom, yearTo, genre]);
+  }, [yearFrom, yearTo, genre, searchType, searchBy]);
 
   useEffect(() => {
     const q = searchParams.get('q') || '';
@@ -80,6 +86,7 @@ export default function Search() {
     const ytRaw = searchParams.get('year_to') || searchParams.get('yearTo') || '';
     const g = searchParams.get('with_genres') || searchParams.get('genre') || '';
     const sb = searchParams.get('search_by') || 'title';
+    const st = searchParams.get('type') || 'movie';
 
     const yf = yfRaw ? parseInt(yfRaw, 10) : null;
     const yt = ytRaw ? parseInt(ytRaw, 10) : null;
@@ -99,7 +106,7 @@ export default function Search() {
         const paramString = params.toString();
         const url = (sb === 'person')
           ? `${API_BASE}/tmdb/person_movies?${paramString}`
-          : (paramString ? `${API_BASE}/tmdb/search?${paramString}` : `${API_BASE}/tmdb/search`);
+          : (paramString ? `${API_BASE}/tmdb/search?${paramString}${st ? `&type=${encodeURIComponent(st)}` : ''}` : `${API_BASE}/tmdb/search${st ? `?type=${encodeURIComponent(st)}` : ''}`);
         // debug log
         console.log('Fetching TMDB with URL:', url);
         const res = await fetch(url);
@@ -140,9 +147,10 @@ export default function Search() {
       if (g) params.append('with_genres', g);
       params.append('page', String(next));
       const sb = searchParams.get('search_by') || 'title';
+      const st = searchParams.get('type') || 'movie';
       const url = (sb === 'person')
         ? `${API_BASE}/tmdb/person_movies?${params.toString()}`
-        : `${API_BASE}/tmdb/search?${params.toString()}`;
+        : `${API_BASE}/tmdb/search?${params.toString()}${st ? `&type=${encodeURIComponent(st)}` : ''}`;
       console.log('Fetching next page TMDB with URL:', url);
       const res = await fetch(url);
       const json = await res.json();
@@ -160,7 +168,7 @@ export default function Search() {
     <div>
       <Header />
       <div className="page-container">
-        <h2>Search Movies</h2>
+        <h2>Search</h2>
 
         <div style={{ marginBottom: 12, display: 'flex', gap: 12, alignItems: 'center' }}>
           <label>Release year from: 
@@ -207,13 +215,13 @@ export default function Search() {
               role="button"
               tabIndex={0}
               style={{ cursor: 'pointer' }}
-              onClick={() => navigate(`/movie/${m.id}`)}
-              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') navigate(`/movie/${m.id}`); }}
+              onClick={() => navigate(m.media_type === 'tv' ? `/tv/${m.id}` : `/movie/${m.id}`)}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') navigate(m.media_type === 'tv' ? `/tv/${m.id}` : `/movie/${m.id}`); }}
             
             >
               {m.poster_path ? (
                 <img
-                  alt={m.title}
+                  alt={m.title || m.name}
                   src={`https://image.tmdb.org/t/p/w154${m.poster_path}`}
                   className="result-poster"
                 />
@@ -221,8 +229,8 @@ export default function Search() {
                 <div className="result-placeholder" />
               )}
               <div className="result-info">
-                <h3 style={{ margin: 0 }}>{m.title} <small>({m.release_date?.slice(0,4)})</small></h3>
-                <p style={{ margin: "6px 0" }}>{m.overview?.slice(0,200)}</p>
+                <h3 style={{ margin: 0 }}>{(m.title || m.name)} <small>({(m.release_date || m.first_air_date)?.slice(0,4)})</small></h3>
+                <p style={{ margin: "6px 0" }}>{m.overview?.slice(0,200) || m.overview}</p>
               </div>
             </div>
           ))}

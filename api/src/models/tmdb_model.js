@@ -36,6 +36,8 @@ export async function findMovies(options = {}) {
     });
 
     let results = response.data.results || [];
+    // mark media type so frontend can distinguish movie/tv
+    results = results.map(r => ({ ...r, media_type: 'movie' }));
 
     // filter by year range if provided
     if (yearFrom || yearTo) {
@@ -87,6 +89,10 @@ export async function findMovies(options = {}) {
   const response = await axios.get(url, { params, headers });
   // If caller requested additional filtering (safety net), apply it server-side
   let data = response.data;
+  // mark media type for discover results
+  if (data && Array.isArray(data.results)) {
+    data.results = data.results.map(r => ({ ...r, media_type: 'movie' }));
+  }
   if ((yearFrom || yearTo) || with_genres) {
     let results = data.results || [];
 
@@ -117,6 +123,130 @@ export async function findMovies(options = {}) {
   }
 
   return data;
+}
+
+export async function findTv(options = {}) {
+  ensureBearer();
+
+  const headers = {
+    accept: "application/json",
+    Authorization: `Bearer ${process.env.TMDB_BEARER}`,
+  };
+
+  const page = options.page || 1;
+  const yearFrom = options.year_from ? parseInt(options.year_from, 10) : null;
+  const yearTo = options.year_to ? parseInt(options.year_to, 10) : null;
+  const with_genres = options.with_genres || options.genre || null;
+  const with_cast = options.with_cast || null;
+
+  if (options.query) {
+    const url = `${TMDB_BASE}/search/tv`;
+    const response = await axios.get(url, {
+      params: { query: options.query, page, language: "en-US" },
+      headers,
+    });
+
+    let results = response.data.results || [];
+
+    // mark media type
+    results = results.map(r => ({ ...r, media_type: 'tv' }));
+
+    // filter by year range if provided (use first_air_date)
+    if (yearFrom || yearTo) {
+      results = results.filter((r) => {
+        const y = r.first_air_date ? parseInt(r.first_air_date.slice(0, 4), 10) : null;
+        if (!y) return false;
+        if (yearFrom && y < yearFrom) return false;
+        if (yearTo && y > yearTo) return false;
+        return true;
+      });
+    }
+
+    if (with_genres) {
+      const ids = ("" + with_genres).split(",").map((v) => parseInt(v, 10));
+      results = results.filter((r) => Array.isArray(r.genre_ids) && ids.every((id) => r.genre_ids.includes(id)));
+    }
+
+    return {
+      page: response.data.page || page,
+      results,
+      total_results: results.length,
+      total_pages: response.data.total_pages || 1,
+    };
+  }
+
+  const url = `${TMDB_BASE}/discover/tv`;
+  const params = {
+    include_adult: false,
+    language: "en-US",
+    page,
+    sort_by: options.sort_by || "popularity.desc",
+  };
+
+  if (with_genres) params.with_genres = with_genres;
+  if (with_cast) params.with_cast = with_cast;
+  if (yearFrom && yearTo) {
+    params['first_air_date.gte'] = `${yearFrom}-01-01`;
+    params['first_air_date.lte'] = `${yearTo}-12-31`;
+  } else if (yearFrom) {
+    params['first_air_date.gte'] = `${yearFrom}-01-01`;
+  } else if (yearTo) {
+    params['first_air_date.lte'] = `${yearTo}-12-31`;
+  }
+
+  const response = await axios.get(url, { params, headers });
+  let data = response.data;
+  if ((yearFrom || yearTo) || with_genres) {
+    let results = data.results || [];
+
+    if (yearFrom || yearTo) {
+      results = results.filter((r) => {
+        const y = r.first_air_date ? parseInt(r.first_air_date.slice(0, 4), 10) : null;
+        if (!y) return false;
+        if (yearFrom && y < yearFrom) return false;
+        if (yearTo && y > yearTo) return false;
+        return true;
+      });
+    }
+
+    if (with_genres) {
+      const ids = ("" + with_genres).split(",").map((v) => parseInt(v, 10));
+      results = results.filter((r) => Array.isArray(r.genre_ids) && ids.every((id) => r.genre_ids.includes(id)));
+    }
+
+    data = {
+      ...data,
+      results: results.map(r => ({ ...r, media_type: 'tv' })),
+      total_results: results.length,
+      total_pages: data.total_pages || null,
+    };
+  } else if (data && Array.isArray(data.results)) {
+    data.results = data.results.map(r => ({ ...r, media_type: 'tv' }));
+  }
+
+  return data;
+}
+
+export async function getTvDetails(tvId) {
+  ensureBearer();
+  const url = `${TMDB_BASE}/tv/${encodeURIComponent(tvId)}`;
+  const headers = {
+    accept: "application/json",
+    Authorization: `Bearer ${process.env.TMDB_BEARER}`,
+  };
+  const response = await axios.get(url, { params: { language: "en-US" }, headers });
+  return response.data;
+}
+
+export async function getTvCredits(tvId) {
+  ensureBearer();
+  const url = `${TMDB_BASE}/tv/${encodeURIComponent(tvId)}/credits`;
+  const headers = {
+    accept: "application/json",
+    Authorization: `Bearer ${process.env.TMDB_BEARER}`,
+  };
+  const response = await axios.get(url, { params: { language: "en-US" }, headers });
+  return response.data;
 }
 
 export async function getMovieDetails(movieId) {
@@ -173,6 +303,28 @@ export async function searchPersonByName(name, page = 1) {
 export async function getPersonMovieCredits(personId) {
   ensureBearer();
   const url = `${TMDB_BASE}/person/${encodeURIComponent(personId)}/movie_credits`;
+  const headers = {
+    accept: "application/json",
+    Authorization: `Bearer ${process.env.TMDB_BEARER}`,
+  };
+  const response = await axios.get(url, { params: { language: "en-US" }, headers });
+  return response.data; // contains `cast` and `crew`
+}
+
+export async function getPersonTvCredits(personId) {
+  ensureBearer();
+  const url = `${TMDB_BASE}/person/${encodeURIComponent(personId)}/tv_credits`;
+  const headers = {
+    accept: "application/json",
+    Authorization: `Bearer ${process.env.TMDB_BEARER}`,
+  };
+  const response = await axios.get(url, { params: { language: "en-US" }, headers });
+  return response.data; // contains `cast` and `crew`
+}
+
+export async function getMovieCredits(movieId) {
+  ensureBearer();
+  const url = `${TMDB_BASE}/movie/${encodeURIComponent(movieId)}/credits`;
   const headers = {
     accept: "application/json",
     Authorization: `Bearer ${process.env.TMDB_BEARER}`,

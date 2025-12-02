@@ -27,6 +27,7 @@ function App() {
         <Route path="/sharedfavorite" element={<SharedFavorite />} />
         <Route path="/group/:id" element={<SpecificGroup />} />
         <Route path="/movie/:id" element={<SpecificMovie />} />
+        <Route path="/tv/:id" element={<SpecificMovie />} />
         <Route path="/login" element={<Login />} />
         <Route path="/notfound" element={<NotFound />} />
         <Route path="/register" element={<Register />} />

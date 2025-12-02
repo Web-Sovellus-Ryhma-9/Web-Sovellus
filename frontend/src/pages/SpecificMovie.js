@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useLocation, useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 
 const API_BASE = process.env.REACT_APP_API_URL || "";
@@ -29,6 +29,8 @@ function Stars({ value, onChange, editable = false }) {
 
 export default function SpecificMovie() {
   const { id } = useParams();
+  const location = useLocation();
+  const mediaType = location.pathname && location.pathname.startsWith('/tv/') ? 'tv' : 'movie';
   const [movie, setMovie] = useState(null);
   const [loading, setLoading] = useState(true);
   const [reviews, setReviews] = useState([]);
@@ -40,6 +42,8 @@ export default function SpecificMovie() {
   const [account, setAccount] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [modalContent, setModalContent] = useState({ title: "", message: "" });
+  const [credits, setCredits] = useState([]);
+  const navigate = useNavigate();
 
   // review form
   const [rating, setRating] = useState(5);
@@ -51,20 +55,33 @@ export default function SpecificMovie() {
 
     async function load() {
       try {
-        const res = await fetch(`${API_BASE}/tmdb/movie/${encodeURIComponent(id)}`);
+        const res = await fetch(`${API_BASE}/tmdb/${mediaType}/${encodeURIComponent(id)}`);
         if (!res.ok) throw new Error("tmdb fetch failed");
         const json = await res.json();
-        // map TMDB response to our movie shape while keeping raw data
+        // map TMDB response to a generic media shape while keeping raw data
         const mapped = {
           id: json.id,
-          title: json.title || json.name || `Movie ${id}`,
+          title: json.title || json.name || `Media ${id}`,
           description: json.overview || json.tagline || "",
           image: json.poster_path ? `https://image.tmdb.org/t/p/w500${json.poster_path}` : null,
           tmdb: json,
         };
         if (!cancelled) setMovie(mapped);
+        // fetch credits for this media using TMDB id
+        try {
+          const mediaIdForCredits = json.id || id;
+          const cRes = await fetch(`${API_BASE}/tmdb/${mediaType}/${encodeURIComponent(mediaIdForCredits)}/credits`);
+          if (cRes.ok) {
+            const cjson = await cRes.json();
+            if (!cancelled) setCredits(cjson.cast || []);
+          } else {
+            if (!cancelled) setCredits([]);
+          }
+        } catch (err) {
+          if (!cancelled) setCredits([]);
+        }
       } catch (e) {
-        // fallback mock movie
+        // fallback mock
         if (!cancelled)
           setMovie({
             id,
@@ -362,11 +379,11 @@ export default function SpecificMovie() {
           <div className="movie-main">
             <h2 className="movie-title">{movie.title}</h2>
             <div className="movie-meta" style={{ color: '#666', marginBottom: 8 }}>
-              {movie.tmdb?.release_date && (
-                <span>Release: {new Date(movie.tmdb.release_date).toLocaleDateString()}</span>
+              {(movie.tmdb?.release_date || movie.tmdb?.first_air_date) && (
+                <span>Release: {new Date(movie.tmdb.release_date || movie.tmdb.first_air_date).toLocaleDateString()}</span>
               )}
-              {movie.tmdb?.runtime != null && (
-                <span style={{ marginLeft: 12 }}>Duration: {formatRuntime(movie.tmdb.runtime)}</span>
+              {(movie.tmdb?.runtime != null || (movie.tmdb?.episode_run_time && movie.tmdb.episode_run_time.length > 0)) && (
+                <span style={{ marginLeft: 12 }}>Duration: {formatRuntime(movie.tmdb.runtime || (movie.tmdb.episode_run_time && movie.tmdb.episode_run_time[0]) || 0)}</span>
               )}
             </div>
             <div className="avg-rating">
@@ -382,6 +399,40 @@ export default function SpecificMovie() {
               <div style={{ marginTop: 6 }}>Genres: {movie.tmdb.genres.map(g => g.name).join(', ')}</div>
             )}
             <p className="movie-description">{movie.description}</p>
+
+            {credits && credits.length > 0 && (
+              <div style={{ marginTop: 12 }}>
+                <h3>Main cast</h3>
+                <div className="cast-names" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  {credits.slice(0, 6).map(actor => {
+                    const key = actor.cast_id || actor.credit_id || actor.id;
+                    const personId = actor.id;
+                    const name = actor.name || '';
+                    const go = () => {
+                      // navigate to Search page performing a person search; include person_id for precision
+                      const q = encodeURIComponent(name);
+                      const path = `/search?search_by=person&person_id=${encodeURIComponent(personId)}&q=${q}&type=all`;
+                      navigate(path);
+                    };
+
+                    return (
+                      <div
+                        key={key}
+                        role="button"
+                        tabIndex={0}
+                        onClick={go}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') go(); }}
+                        title={`Find works by ${name}`}
+                        style={{ padding: '6px 10px', background: '#f5f5f5', borderRadius: 6, cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}
+                      >
+                        <div style={{ fontWeight: 600 }}>{name}</div>
+                        {actor.character && <div style={{ fontSize: 12, color: '#666' }}>{actor.character}</div>}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             <hr />
 
