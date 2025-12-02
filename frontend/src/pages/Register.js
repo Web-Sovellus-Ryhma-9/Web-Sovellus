@@ -44,7 +44,7 @@ export default function Register() {
       <Header />
       <div className="auth-page-container">
 
-        <h2>Rekisteröidy</h2>
+        <h2>Register</h2>
         <form className="register-form" onSubmit={handleSubmit}>
           <div>
             <input type="text" id="username" name="username"
