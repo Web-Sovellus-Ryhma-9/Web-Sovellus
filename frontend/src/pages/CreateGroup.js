@@ -9,6 +9,8 @@ export default function CreateGroup() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+  const [showModal, setShowModal] = useState(false);
+  const [modalContent, setModalContent] = useState({ title: "", message: "" });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -40,8 +42,9 @@ export default function CreateGroup() {
         throw new Error(data.error || data.message || `HTTP ${res.status}`);
       }
 
-      alert("Creation successful.");
-      navigate("/OwnGroups"); // React Router SPA navigation
+      setModalContent({ title: "Group Created", message: "Creation successful. Redirecting to your groups." });
+      setShowModal(true);
+      setTimeout(() => navigate("/OwnGroups"), 1200);
     } catch (err) {
       console.error("[CreateGroup] error:", err);
       setError(err.message || "An error occurred");
@@ -100,6 +103,14 @@ export default function CreateGroup() {
           </small>
         </form>
       </div>
+      {showModal && (
+        <div className="modal-overlay" onClick={() => setShowModal(false)}>
+          <div className="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" onClick={(e) => e.stopPropagation()}>
+            <h3 id="modal-title">{modalContent.title}</h3>
+            <p>{modalContent.message}</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

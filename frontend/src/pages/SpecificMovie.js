@@ -38,6 +38,8 @@ export default function SpecificMovie() {
   const [joining, setJoining] = useState(false);
   const [loggedIn, setLoggedIn] = useState(!!localStorage.getItem("token"));
   const [account, setAccount] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [modalContent, setModalContent] = useState({ title: "", message: "" });
 
   // review form
   const [rating, setRating] = useState(5);
@@ -186,7 +188,11 @@ export default function SpecificMovie() {
   }
 
   async function joinSelectedGroup() {
-    if (!selectedGroup) return alert("Select a group first");
+    if (!selectedGroup) {
+      setModalContent({ title: "Add to Group", message: "Select a group first" });
+      setShowModal(true);
+      return;
+    }
     setJoining(true);
     try {
       await fetch(`/api/groups/${selectedGroup}/join`, { method: "POST" });
@@ -195,14 +201,16 @@ export default function SpecificMovie() {
       memberships[selectedGroup] = memberships[selectedGroup] || [];
       if (!memberships[selectedGroup].includes(id)) memberships[selectedGroup].push(id);
       localStorage.setItem("groupMemberships", JSON.stringify(memberships));
-      alert("Added to group.");
+      setModalContent({ title: "Group", message: "Added to group." });
+      setShowModal(true);
     } catch (e) {
       // local fallback
       const memberships = JSON.parse(localStorage.getItem("groupMemberships") || "{}");
       memberships[selectedGroup] = memberships[selectedGroup] || [];
       if (!memberships[selectedGroup].includes(id)) memberships[selectedGroup].push(id);
       localStorage.setItem("groupMemberships", JSON.stringify(memberships));
-      alert("Added locally to group (server did not respond).");
+      setModalContent({ title: "Group (local)", message: "Added locally to group (server did not respond)." });
+      setShowModal(true);
     } finally {
       setJoining(false);
     }
@@ -230,10 +238,15 @@ export default function SpecificMovie() {
 
   async function submitReview(e) {
     e.preventDefault();
-    if (!rating || rating < 1 || rating > 5) return alert("Provide a rating between 1 and 5");
+    if (!rating || rating < 1 || rating > 5) {
+      setModalContent({ title: "Invalid Rating", message: "Provide a rating between 1 and 5" });
+      setShowModal(true);
+      return;
+    }
     const token = localStorage.getItem('token');
     if (!token) {
-      alert('Log in to write a review.');
+      setModalContent({ title: "Login Required", message: 'Log in to write a review.' });
+      setShowModal(true);
       return;
     }
     setSubmittingReview(true);
@@ -247,10 +260,9 @@ export default function SpecificMovie() {
         headers,
         body: JSON.stringify({ rating, comment: comment.trim() }),
       });
-
       if (res.status === 409 && !userReview) {
-        // legacy safety: backend still blocking duplicates
-        alert('You have already reviewed this movie.');
+        setModalContent({ title: 'Already Reviewed', message: 'You have already reviewed this movie.' });
+        setShowModal(true);
       } else if (!res.ok) {
         throw new Error("review save failed");
       }
@@ -436,7 +448,8 @@ export default function SpecificMovie() {
                                     setReviews(mapped);
                                   }
                                 } catch (e) {
-                                  alert('Arvostelun poisto epäonnistui');
+                                  setModalContent({ title: 'Delete Failed', message: 'Delete failed' });
+                                  setShowModal(true);
                                 }
                               }}>Poista</button>
                             )}
@@ -451,6 +464,14 @@ export default function SpecificMovie() {
           </div>
         </div>
       </div>
+    {showModal && (
+      <div className="modal-overlay" onClick={() => setShowModal(false)}>
+        <div className="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" onClick={(e) => e.stopPropagation()}>
+          <h3 id="modal-title">{modalContent.title}</h3>
+          <p>{modalContent.message}</p>
+        </div>
+      </div>
+    )}
     </div>
   );
 }

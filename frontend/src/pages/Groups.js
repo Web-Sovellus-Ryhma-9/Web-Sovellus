@@ -8,35 +8,65 @@ export default function Groups() {
   const [loading, setLoading] = useState(true);
   const [joinedIds, setJoinedIds] = useState(new Set());
 
-  useEffect(() => {
+  const API_BASE = process.env.REACT_APP_API_URL || ""; // empty -> relative to current origin
+
+  async function fetchGroups(limit) {
     let cancelled = false;
+    try {
+      setLoading(true);
+      const base = API_BASE || "";
+      const attempts = [
+        `${base}/groups/getGroups`,
+        `${base}/groups`
+      ];
 
-    async function loadGroups() {
-      try {
-        const res = await fetch("/api/groups");
-        if (!res.ok) throw new Error("no api");
-        const data = await res.json();
-        if (!cancelled) setGroups(data);
-      } catch (e) {
-        if (!cancelled)
-          setGroups([
-            { id: 1, name: "Movie group", description: "Watch and discuss movies.", image: null },
-            { id: 2, name: "Sci-Fi friends", description: "Latest sci-fi movies and classics.", image: null },
-            { id: 3, name: "Documentaries", description: "Recommendations and discussions on documentary films.", image: null },
-          ]);
-      } finally {
-        if (!cancelled) setLoading(false);
+      let data = null;
+      for (const url of attempts) {
+        console.debug("Groups: trying", url);
+        const res = await fetch(url, { headers: { Accept: "application/json" } });
+        if (res.ok) {
+          data = await res.json();
+          break;
+        }
+        // if 404 try next, log other non-ok statuses
+        console.debug(`Groups: ${url} -> ${res.status}`);
       }
-    }
 
-    loadGroups();
+      if (!cancelled) {
+        if (Array.isArray(data)) {
+          setGroups(typeof limit === "number" ? data.slice(0, limit) : data);
+        } else {
+          setGroups([]);
+        }
+      }
+    } catch (e) {
+      console.error("Groups: fetch error", e);
+      if (!cancelled) {
+        setGroups([]);
+      }
+    } finally {
+      if (!cancelled) setLoading(false);
+    }
     return () => {
       cancelled = true;
+    };
+  }
+
+  useEffect(() => {
+    let stop = false;
+    // load all groups from DB; pass a number to limit if needed
+    fetchGroups();
+    return () => {
+      stop = true;
     };
   }, []);
 
   function joinGroup(id) {
-    setJoinedIds(prev => new Set(prev).add(id));
+    setJoinedIds(prev => {
+      const s = new Set(prev);
+      s.add(id);
+      return s;
+    });
   }
 
   return (
@@ -56,6 +86,8 @@ export default function Groups() {
         </div>
         {loading ? (
           <p>Loading groups…</p>
+        ) : groups.length === 0 ? (
+          <p>No Groups</p>
         ) : (
           <div className="groups-list">
             {groups.map(group => (

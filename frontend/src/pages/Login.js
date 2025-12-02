@@ -5,6 +5,8 @@ import "./styles/pagestyles.css";
 
 export default function Login() {
   const [formData, setFormData] = useState({ username: "", password: "" });
+  const [showModal, setShowModal] = useState(false);
+  const [modalContent, setModalContent] = useState({ title: "", message: "" });
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -28,7 +30,8 @@ export default function Login() {
       })
       .catch((err) => {
         console.error(err);
-        alert("Kirjautuminen epäonnistui: " + err.message);
+        setModalContent({ title: "Login Failed", message: `Login failed: ${err.message}` });
+        setShowModal(true);
       });
   };
   return (
@@ -62,6 +65,14 @@ export default function Login() {
           <span className="nav-text-button" onClick={() => (window.location.href = "/Register")}>Not registered? Click here!</span>
           <button type="Submit">Login</button>
         </form>
+        {showModal && (
+          <div className="modal-overlay" onClick={() => setShowModal(false)}>
+            <div className="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" onClick={(e) => e.stopPropagation()}>
+              <h3 id="modal-title">{modalContent.title}</h3>
+              <p>{modalContent.message}</p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
