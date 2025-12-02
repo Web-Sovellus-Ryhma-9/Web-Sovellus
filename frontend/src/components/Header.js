@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./styles/Header.css";
+import logo from "../assets/logo/PopcornHub_logo.png";
 
 function Header() {
   const [query, setQuery] = useState("");
@@ -198,7 +199,9 @@ function Header() {
   return (
     <header className="app-header" ref={wrapperRef}>
       <div className="header-left">
-        <button className="logo-button" onClick={() => navigate('/')}>Home</button>
+        <button className="logo-button" onClick={() => navigate('/')} aria-label="Home">
+          <img src={logo} alt="PopcornHub" className="app-logo" />
+        </button>
       </div>
 
       <form className="search-form" onSubmit={onSubmit} role="search" autoComplete="off">
