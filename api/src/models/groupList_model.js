@@ -16,6 +16,16 @@ export async function createGroup(account_id, group_name, role_status = 1) {
     throw err;
   }
 }
+export async function getGroups() {
+  const sql = `
+    SELECT group_id, account_id, group_name, role_status, created_at
+    FROM groupList
+    ORDER BY created_at DESC
+  `;
+  const { rows } = await pool.query(sql);
+  return rows;
+}
+
 
 export async function findByAccount(account_id) {
   const sql = `

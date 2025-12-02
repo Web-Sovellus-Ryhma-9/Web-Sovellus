@@ -1,5 +1,8 @@
 import jwt from "jsonwebtoken";
 import { createGroup as modelCreateGroup, findByAccount } from "../models/groupList_model.js";
+import { getGroups as modelGetGroups } from "../models/groupList_model.js";
+
+
 
 const JWT_SECRET = process.env.JWT_SECRET || "dev_jwt_secret";
 
@@ -8,6 +11,27 @@ function extractToken(req) {
   const parts = auth.split(" ");
   if (parts.length !== 2 || parts[0] !== "Bearer") return null;
   return parts[1];
+}
+
+
+export async function getGroups(req, res, next) {
+  try {
+    const rows = await modelGetGroups();
+    // map DB columns to frontend shape (id, name, description, image)
+    const groups = (rows || []).map(r => ({
+      id: r.group_id,
+      name: r.group_name,
+      description: null, // add real description column if needed
+      image: null,
+      account_id: r.account_id,
+      role_status: r.role_status,
+      created_at: r.created_at
+    }));
+    return res.json(groups);
+  } catch (err) {
+    console.error("[getGroups] error:", err);
+    return res.status(500).json({ error: err.message || "Internal server error" });
+  }
 }
 
 export async function createGroup(req, res, next) {

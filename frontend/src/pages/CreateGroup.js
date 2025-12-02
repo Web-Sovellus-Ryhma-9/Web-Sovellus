@@ -103,6 +103,14 @@ export default function CreateGroup() {
           </small>
         </form>
       </div>
+      {showModal && (
+        <div className="modal-overlay" onClick={() => setShowModal(false)}>
+          <div className="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" onClick={(e) => e.stopPropagation()}>
+            <h3 id="modal-title">{modalContent.title}</h3>
+            <p>{modalContent.message}</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
