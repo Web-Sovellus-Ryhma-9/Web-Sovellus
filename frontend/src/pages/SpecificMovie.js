@@ -4,11 +4,22 @@ import Header from "../components/Header";
 
 const API_BASE = process.env.REACT_APP_API_URL || "";
 
-function Stars({ value }) {
+function Stars({ value, onChange, editable = false }) {
   const stars = [];
   for (let i = 1; i <= 5; i++) {
+    const filled = i <= value;
+    const commonStyle = {
+      color: filled ? "#f5c518" : "#ccc",
+      fontSize: 22,
+      cursor: editable ? "pointer" : "default",
+      marginRight: 2,
+    };
     stars.push(
-      <span key={i} style={{ color: i <= value ? "#f5c518" : "#ccc", fontSize: 18 }}>
+      <span
+        key={i}
+        style={commonStyle}
+        onClick={editable && onChange ? () => onChange(i) : undefined}
+      >
         ★
       </span>
     );
@@ -205,59 +216,57 @@ export default function SpecificMovie() {
     }
   }
 
+  const userReview = React.useMemo(() => {
+    if (!account || !reviews || reviews.length === 0) return null;
+    return reviews.find(r =>
+      (r.account_id != null && account.account_id != null &&
+       String(r.account_id) === String(account.account_id)
+      ) || r.user === account.username
+    ) || null;
+  }, [reviews, account]);
+
+  // when userReview changes, prefill form
+  useEffect(() => {
+    if (userReview) {
+      setRating(Number(userReview.rating) || 5);
+      setComment(userReview.comment || "");
+    } else {
+      setRating(5);
+      setComment("");
+    }
+  }, [userReview]);
+
   async function submitReview(e) {
     e.preventDefault();
     if (!rating || rating < 1 || rating > 5) {
-      setModalContent({ title: "Invalid Rating", message: "Anna arvostelu 1-5" });
+      setModalContent({ title: "Invalid Rating", message: "Provide a rating between 1 and 5" });
       setShowModal(true);
       return;
     }
     const token = localStorage.getItem('token');
     if (!token) {
-      setModalContent({ title: "Login Required", message: 'Kirjaudu sisään kirjoittaaksesi arvostelun.' });
+      setModalContent({ title: "Login Required", message: 'Log in to write a review.' });
       setShowModal(true);
       return;
     }
     setSubmittingReview(true);
-    const rev = { id: `local-${Date.now()}`, rating, comment: comment.trim(), user: "You", date: new Date().toISOString() };
 
-    // optimistic UI
-    const next = [rev, ...reviews];
-    setReviews(next);
     try {
       const headers = { "Content-Type": "application/json", Authorization: `Bearer ${token}` };
+
+      // if user already has a review, update it; otherwise create new
       const res = await fetch(`${API_BASE}/movies/${id}/reviews`, {
         method: "POST",
         headers,
-        body: JSON.stringify({ rating: rev.rating, comment: rev.comment }),
+        body: JSON.stringify({ rating, comment: comment.trim() }),
       });
-      if (res.status === 409) {
-        setModalContent({ title: 'Already Reviewed', message: 'Olet jo arvostellut tämän elokuvan.' });
+      if (res.status === 409 && !userReview) {
+        setModalContent({ title: 'Already Reviewed', message: 'You have already reviewed this movie.' });
         setShowModal(true);
-        // re-fetch authoritative reviews
-        try {
-          const rr = await fetch(`${API_BASE}/movies/${id}/reviews`);
-          if (rr.ok) {
-            const j = await rr.json();
-            const mapped = (j || []).map(item => ({
-              id: item.id || item.review_id,
-              rating: item.rating,
-              comment: item.comment,
-              user: item.username || item.user || 'Anonyymi',
-              date: item.created_at || item.date || new Date().toISOString(),
-              account_id: item.account_id || null,
-            }));
-            setReviews(mapped);
-          }
-        } catch (e) {
-          // ignore
-        }
-        setSubmittingReview(false);
-        setComment("");
-        setRating(5);
-        return;
+      } else if (!res.ok) {
+        throw new Error("review save failed");
       }
-      if (!res.ok) throw new Error("post failed");
+
       // re-fetch authoritative reviews so usernames/dates are correct
       try {
         const rr = await fetch(`${API_BASE}/movies/${id}/reviews`);
@@ -269,22 +278,18 @@ export default function SpecificMovie() {
             comment: item.comment,
             user: item.username || item.user || 'Anonyymi',
             date: item.created_at || item.date || new Date().toISOString(),
+            account_id: item.account_id || null,
           }));
           setReviews(mapped);
-          // clear any persisted local optimistic reviews for this movie
           localStorage.removeItem(`movieReviews:${id}`);
         }
       } catch (e) {
-        // ignore re-fetch errors
+        // ignore
       }
     } catch (e) {
-      // persist locally
-      const existing = JSON.parse(localStorage.getItem(`movieReviews:${id}`) || "[]");
-      localStorage.setItem(`movieReviews:${id}`, JSON.stringify([rev, ...existing]));
+      alert('review save failed');
     } finally {
       setSubmittingReview(false);
-      setComment("");
-      setRating(5);
     }
   }
 
@@ -364,7 +369,15 @@ export default function SpecificMovie() {
                 <span style={{ marginLeft: 12 }}>Duration: {formatRuntime(movie.tmdb.runtime)}</span>
               )}
             </div>
-            <div className="avg-rating"><Stars value={Math.round(averageRating())} /> <span style={{ marginLeft: 8 }}>{averageRating()} / 5</span></div>
+            <div className="avg-rating">
+              <Stars value={Math.round(averageRating())} />
+              <span style={{ marginLeft: 8 }}>
+                {averageRating()} / 5
+                <span style={{ marginLeft: 16 }}>
+                  ({reviews.length} review{reviews.length === 1 ? '' : 's'})
+                </span>
+              </span>
+            </div>
             {movie.tmdb?.genres && movie.tmdb.genres.length > 0 && (
               <div style={{ marginTop: 6 }}>Genres: {movie.tmdb.genres.map(g => g.name).join(', ')}</div>
             )}
@@ -372,19 +385,33 @@ export default function SpecificMovie() {
 
             <hr />
 
-            <h3>Write a review</h3>
+            <h3>{userReview ? "Edit your review" : "Write a review"}</h3>
             <form onSubmit={submitReview} className="review-form">
               <div>
-                <label>Rating 1-5:</label>
-                <select value={rating} onChange={e => setRating(Number(e.target.value))} style={{ marginLeft: 8 }}>
-                  {[5,4,3,2,1].map(n => <option key={n} value={n}>{n}</option>)}
-                </select>
+                <label>{userReview ? "Edit rating:" : "Rating:"}</label>
+                <div style={{ marginTop: 4 }}>
+                  <Stars
+                    value={rating}
+                    editable={true}
+                    onChange={(val) => setRating(val)}
+                  />
+                  <span style={{ marginLeft: 8 }}>{rating} / 5</span>
+                </div>
               </div>
 
-              <textarea value={comment} onChange={e => setComment(e.target.value)} placeholder="Write a comment (optional)" className="textarea-field" />
+              <textarea
+                value={comment}
+                onChange={e => setComment(e.target.value)}
+                placeholder={userReview ? "Edit your comment (optional)" : "Write a comment (optional)"}
+                className="textarea-field"
+              />
 
               <div>
-                <button type="submit" disabled={submittingReview} className="btn primary">{submittingReview ? "Submitting…" : "Add review"}</button>
+                <button type="submit" disabled={submittingReview} className="btn primary">
+                  {submittingReview
+                    ? (userReview ? "Saving…" : "Submitting…")
+                    : (userReview ? "Save changes" : "Add review")}
+                </button>
               </div>
             </form>
 

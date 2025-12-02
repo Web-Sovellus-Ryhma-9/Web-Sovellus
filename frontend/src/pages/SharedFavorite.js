@@ -12,6 +12,16 @@ export default function SharedFavorite() {
   const API = process.env.REACT_APP_API_URL || "";
   const [loading, setLoading] = useState(true);
   const [list, setList] = useState(null);
+  const [account, setAccount] = useState(null);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('account');
+      if (raw) setAccount(JSON.parse(raw));
+    } catch (e) {
+      setAccount(null);
+    }
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -31,12 +41,17 @@ export default function SharedFavorite() {
     load();
     return () => { cancelled = true; };
   }, [listId]);
+  
+  const userName = account?.username;
+  const title = userName
+    ? `${userName}'s favorite movies`
+    : "Shared favorites";
 
   return (
     <div>
       <Header />
       <div style={{ maxWidth: 900, margin: "2rem auto", padding: "0 1rem" }}>
-        <h2>Shared favorites</h2>
+        <h2>{title}</h2>
         {!listId ? (
           <p>Share the link in the format <code>?list=&lt;listId&gt;</code></p>
         ) : loading ? (
