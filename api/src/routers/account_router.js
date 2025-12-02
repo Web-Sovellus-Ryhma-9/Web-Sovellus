@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { register, login, deleteAccount } from "../controllers/account_controller.js";
+import { register, login, deleteAccount, logout } from "../controllers/account_controller.js";
 
 const accountRouter = Router();
 
@@ -11,5 +11,8 @@ accountRouter.post("/login", login);
 
 // Delete logged-in account: expects Authorization: Bearer <token>
 accountRouter.delete("/", deleteAccount);
+
+// Logout (client-side): expects Authorization: Bearer <token>
+accountRouter.post("/logout", logout);
 
 export default accountRouter;

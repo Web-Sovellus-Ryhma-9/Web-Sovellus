@@ -76,3 +76,25 @@ export async function deleteAccount(req, res, next) {
     next(err);
   }
 }
+
+export async function logout(req, res, next) {
+  try {
+    const auth = req.headers.authorization || "";
+    const parts = auth.split(" ");
+    if (parts.length !== 2 || parts[0] !== "Bearer") {
+      return res.status(401).json({ error: "Missing or invalid authorization header" });
+    }
+
+    const token = parts[1];
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET);
+      if (!decoded || !decoded.account_id) return res.status(400).json({ error: "Invalid token payload" });
+      // Stateless JWTs cannot be invalidated here without a blacklist; just acknowledge logout.
+      return res.json({ message: "Logged out" });
+    } catch (err) {
+      return res.status(401).json({ error: "Invalid token" });
+    }
+  } catch (err) {
+    next(err);
+  }
+}
