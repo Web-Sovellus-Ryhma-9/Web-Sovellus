@@ -11,6 +11,9 @@ export default function Register() {
     email: "",
   });
 
+  const [showModal, setShowModal] = useState(false);
+  const [modalContent, setModalContent] = useState({ title: "", message: "" });
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
@@ -19,7 +22,8 @@ export default function Register() {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (formData.password !== formData.confirmPassword) {
-      alert("Passwords do not match.");
+      setModalContent({ title: "Registration Error", message: "Passwords do not match." });
+      setShowModal(true);
       return;
     }
     const API = process.env.REACT_APP_API_URL || "";
@@ -31,12 +35,16 @@ export default function Register() {
       .then(async (res) => {
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || JSON.stringify(data));
-        alert("Registration successful. You can now log in.");
-        window.location.href = "/login";
+        setModalContent({ title: "Registration Successful", message: "Registration successful. You will be redirected to the login page." });
+        setShowModal(true);
+        setTimeout(() => {
+          window.location.href = "/login";
+        }, 2500);
       })
       .catch((err) => {
         console.error(err);
-        alert("Registration failed: " + err.message);
+        setModalContent({ title: "Registration Failed", message: `Registration failed: ${err.message}` });
+        setShowModal(true);
       });
   };
   return (
@@ -69,6 +77,23 @@ export default function Register() {
           <span className="nav-text-button" onClick={() => (window.location.href = "/login")}>Already registered? Log in!</span>
           <button type="Submit">Register</button>
         </form>
+        {showModal && (
+          <div
+            className="modal-overlay"
+            onClick={() => setShowModal(false)}
+          >
+            <div
+              className="modal"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="modal-title"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 id="modal-title">{modalContent.title}</h3>
+              <p>{modalContent.message}</p>
+            </div>
+          </div>
+        )}
         </div>
     </div>
   );

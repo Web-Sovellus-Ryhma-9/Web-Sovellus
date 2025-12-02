@@ -8,6 +8,9 @@ export default function Profile() {
   const [account, setAccount] = useState(null);
   const navigate = useNavigate();
   const API = process.env.REACT_APP_API_URL || "";
+  const [showModal, setShowModal] = useState(false);
+  const [modalContent, setModalContent] = useState({ title: "", message: "" });
+  const [showConfirmDelete, setShowConfirmDelete] = useState(false);
 
   useEffect(() => {
     try {
@@ -84,7 +87,8 @@ export default function Profile() {
         });
         return;
       } catch (e) {
-        alert("Deletion failed on server. Trying locally.");
+        setModalContent({ title: "Deletion Failed", message: "Deletion failed on server. Trying locally." });
+        setShowModal(true);
         const local = JSON.parse(localStorage.getItem("favorites") || "[]").filter(f => f.id !== id);
         localStorage.setItem("favorites", JSON.stringify(local));
         setFavorites(local);
@@ -98,10 +102,13 @@ export default function Profile() {
     setFavorites(local);
   }
 
-  async function deleteAccount() {
-    const ok = window.confirm("Are you sure you want to delete your account? This action is irreversible.");
-    if (!ok) return;
+  function deleteAccount() {
+    // show confirmation modal instead of native confirm()
+    setShowConfirmDelete(true);
+  }
 
+  async function performDelete() {
+    setShowConfirmDelete(false);
     try {
       const API = process.env.REACT_APP_API_URL || "";
       const token = localStorage.getItem("token");
@@ -115,8 +122,9 @@ export default function Profile() {
         localStorage.removeItem("localGroups");
         localStorage.removeItem("account");
         localStorage.removeItem("token");
-        alert("Account deleted.");
-        navigate("/");
+        setModalContent({ title: "Account Deleted", message: "Account deleted." });
+        setShowModal(true);
+        setTimeout(() => navigate("/"), 1800);
         return;
       }
       // try to report server error details when possible
@@ -132,8 +140,9 @@ export default function Profile() {
       localStorage.removeItem("localGroups");
       localStorage.removeItem("account");
       localStorage.removeItem("token");
-      alert("Local user data cleared (server did not respond).");
-      navigate("/");
+      setModalContent({ title: "Local Data Cleared", message: "Local user data cleared (server did not respond)." });
+      setShowModal(true);
+      setTimeout(() => navigate("/"), 1200);
     }
   }
 
@@ -168,9 +177,10 @@ export default function Profile() {
                 if (favorites && favorites.length > 0 && favorites[0].listId) {
                   const listId = favorites[0].listId;
                   const shareUrl = `${window.location.origin}/sharedfavorite?list=${encodeURIComponent(listId)}`;
-                  navigator.clipboard.writeText(shareUrl).then(() => alert('Shared link copied to clipboard: ' + shareUrl));
+                  navigator.clipboard.writeText(shareUrl).then(() => { setModalContent({ title: 'Copied', message: 'Shared link copied to clipboard: ' + shareUrl }); setShowModal(true); });
                 } else {
-                  alert('Create favorites to share a list.');
+                  setModalContent({ title: 'No Favorites', message: 'Create favorites to share a list.' });
+                  setShowModal(true);
                 }
               }}
             >
@@ -210,6 +220,26 @@ export default function Profile() {
           </div>
         </div>
       </div>
+    {showModal && (
+      <div className="modal-overlay" onClick={() => setShowModal(false)}>
+        <div className="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" onClick={(e) => e.stopPropagation()}>
+          <h3 id="modal-title">{modalContent.title}</h3>
+          <p>{modalContent.message}</p>
+        </div>
+      </div>
+    )}
+    {showConfirmDelete && (
+      <div className="modal-overlay" onClick={() => setShowConfirmDelete(false)}>
+        <div className="modal" role="dialog" aria-modal="true" aria-labelledby="delete-account-title" onClick={(e) => e.stopPropagation()}>
+          <h3 id="delete-account-title">Delete Account</h3>
+          <p>Are you sure you want to delete your account? This action is irreversible.</p>
+          <div className="modal-actions">
+            <button className="btn" onClick={() => setShowConfirmDelete(false)}>Cancel</button>
+            <button className="btn danger" onClick={performDelete}>Delete</button>
+          </div>
+        </div>
+      </div>
+    )}
     </div>
   );
 }
