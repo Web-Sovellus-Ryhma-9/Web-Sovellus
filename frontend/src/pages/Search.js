@@ -163,7 +163,7 @@ export default function Search() {
         <h2>Search Movies</h2>
 
         <div style={{ marginBottom: 12, display: 'flex', gap: 12, alignItems: 'center' }}>
-          <label>Year from: 
+          <label>Release year from: 
             <input
               type="text"
               inputMode="numeric"
@@ -174,7 +174,7 @@ export default function Search() {
               style={{ width: 100 }}
             />
           </label>
-          <label>Year to: 
+          <label>Release year to: 
             <input
               type="text"
               inputMode="numeric"

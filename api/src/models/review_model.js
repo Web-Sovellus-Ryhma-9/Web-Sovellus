@@ -41,3 +41,16 @@ export async function removeReviewByAccountAndMovie(account_id, movie_id) {
   const { rows } = await pool.query(sql, [account_id, String(movie_id)]);
   return rows[0];
 }
+
+export async function updateReviewByAccountAndMovie(account_id, movie_id, rating, comment) {
+  const sql = `
+    UPDATE reviews
+    SET rating = $3,
+        comment = $4,
+        created_at = NOW()
+    WHERE account_id = $1 AND movie_id = $2
+    RETURNING review_id, movie_id, account_id, username, rating, comment, created_at
+  `;
+  const { rows } = await pool.query(sql, [account_id, String(movie_id), rating, comment || null]);
+  return rows[0];
+}

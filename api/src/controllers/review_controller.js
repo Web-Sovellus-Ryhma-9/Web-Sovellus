@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import { getReviewsByMovie, addReview, findReviewByAccountAndMovie, removeReviewByAccountAndMovie } from "../models/review_model.js";
+import { getReviewsByMovie, addReview, findReviewByAccountAndMovie, removeReviewByAccountAndMovie, updateReviewByAccountAndMovie } from "../models/review_model.js";
 
 const JWT_SECRET = process.env.JWT_SECRET || "dev_jwt_secret";
 
@@ -42,12 +42,18 @@ export async function postReview(req, res, next) {
 
     console.log('postReview called', { movie_id, account_id, username, rating: parsedRating, comment });
 
-    // enforce one review per account per movie
+    // one review per account per movie -> UPDATE if exists, INSERT otherwise
     if (account_id) {
       const existing = await findReviewByAccountAndMovie(account_id, movie_id);
       if (existing) {
-        console.log('postReview duplicate prevented', { account_id, movie_id });
-        return res.status(409).json({ error: 'Already reviewed' });
+        const updated = await updateReviewByAccountAndMovie(
+          account_id,
+          movie_id,
+          parsedRating,
+          comment || null
+        );
+        console.log("postReview updated existing", updated);
+        return res.json({ message: "Review updated", review: updated });
       }
     }
 
