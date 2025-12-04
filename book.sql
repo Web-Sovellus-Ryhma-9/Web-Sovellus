@@ -50,3 +50,13 @@ CREATE TABLE IF NOT EXISTS reviews (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
   CONSTRAINT fk_review_account FOREIGN KEY (account_id) REFERENCES account(account_id) ON DELETE SET NULL
 );
+
+DROP TABLE IF EXISTS group_members;
+CREATE TABLE IF NOT EXISTS group_members (
+  member_id SERIAL PRIMARY KEY,
+  group_id INTEGER NOT NULL REFERENCES groupList(group_id) ON DELETE CASCADE,
+  account_id INTEGER NOT NULL REFERENCES account(account_id) ON DELETE CASCADE,
+  role_status INTEGER NOT NULL DEFAULT 3, -- 1=owner, 2=member, 3=pending
+  joined_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+  UNIQUE (group_id, account_id)
+);

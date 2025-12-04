@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createGroup, getOwnGroups, getGroups } from "../controllers/groupList_controller.js";
+import { createGroup, getOwnGroups, getGroups, deleteGroup, getGroupMembers, requestJoinGroup, approveMember } from "../controllers/groupList_controller.js";
 
 const groupListRouter = Router();
 
@@ -12,5 +12,15 @@ groupListRouter.post("/creategroup", createGroup);
 groupListRouter.get("/getOwnGroups", getOwnGroups);
 
 groupListRouter.get("/getGroups", getGroups);
+
+groupListRouter.delete("/delete/:id", deleteGroup);
+
+groupListRouter.get("/members/:id", getGroupMembers);
+
+// POST to request join (body: { group_id })
+groupListRouter.post("/members/join", requestJoinGroup);
+
+// POST to approve member (body: { group_id, account_id }) — protect in production
+groupListRouter.post("/members/approve", approveMember);
 
 export default groupListRouter;
