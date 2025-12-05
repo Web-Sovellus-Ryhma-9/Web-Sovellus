@@ -36,6 +36,7 @@ export default function SpecificMovie() {
   const [reviews, setReviews] = useState([]);
   const [favorites, setFavorites] = useState([]);
   const [localGroups, setLocalGroups] = useState([]);
+  const [serverGroups, setServerGroups] = useState([]);
   const [selectedGroup, setSelectedGroup] = useState("");
   const [joining, setJoining] = useState(false);
   const [loggedIn, setLoggedIn] = useState(!!localStorage.getItem("token"));
@@ -149,6 +150,23 @@ export default function SpecificMovie() {
     };
   }, [id]);
 
+  // load server groups for dropdown (so user can add movie to a real group)
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch(`${API_BASE}/groups/getGroups`, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
+        if (!res.ok) return;
+        const j = await res.json();
+        if (!cancelled) setServerGroups(Array.isArray(j) ? j : []);
+      } catch (e) {
+        // ignore
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
   // keep loggedIn state in sync with localStorage (helps if user logs in/out in another tab)
   useEffect(() => {
     function onStorage(e) {
@@ -212,21 +230,45 @@ export default function SpecificMovie() {
     }
     setJoining(true);
     try {
-      await fetch(`/api/groups/${selectedGroup}/join`, { method: "POST" });
-      // store local membership
-      const memberships = JSON.parse(localStorage.getItem("groupMemberships") || "{}");
-      memberships[selectedGroup] = memberships[selectedGroup] || [];
-      if (!memberships[selectedGroup].includes(id)) memberships[selectedGroup].push(id);
-      localStorage.setItem("groupMemberships", JSON.stringify(memberships));
-      setModalContent({ title: "Group", message: "Added to group." });
+      // if selectedGroup corresponds to a server group id, verify membership
+      const sg = serverGroups.find(g => String(g.group_id || g.id) === String(selectedGroup) || String(g.id) === String(selectedGroup));
+      const token = localStorage.getItem('token');
+      if (sg) {
+        // fetch members and check membership
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+        const mres = await fetch(`${API_BASE}/groups/members/${selectedGroup}`, { headers });
+        if (mres.ok) {
+          const mrows = await mres.json();
+          const payload = token ? JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))) : null;
+          const myId = payload ? (payload.account_id || payload.accountId || payload.id) : null;
+          const amember = Array.isArray(mrows) && mrows.some(m => (m.account_id && String(m.account_id) === String(myId)) && (m.role_status === 1 || m.role_status === 2));
+          if (!amember) {
+            setModalContent({ title: "Not a member", message: "You must be a member of the selected group to add movies. Request to join first." });
+            setShowModal(true);
+            setJoining(false);
+            return;
+          }
+        } else {
+          // could not verify membership — prevent adding
+          setModalContent({ title: "Membership check failed", message: "Could not verify group membership. Try again later." });
+          setShowModal(true);
+          setJoining(false);
+          return;
+        }
+      }
+
+      // Add movie to group movies in localStorage
+      const key = `groupMovies:${selectedGroup}`;
+      const existing = JSON.parse(localStorage.getItem(key) || '[]');
+      const movieObj = { id: String(id), title: movie?.title || `Movie ${id}`, image: movie?.image || null };
+      if (!existing.some(m => String(m.id) === String(movieObj.id))) {
+        existing.unshift(movieObj);
+        localStorage.setItem(key, JSON.stringify(existing));
+      }
+      setModalContent({ title: "Added", message: "Movie added to group." });
       setShowModal(true);
     } catch (e) {
-      // local fallback
-      const memberships = JSON.parse(localStorage.getItem("groupMemberships") || "{}");
-      memberships[selectedGroup] = memberships[selectedGroup] || [];
-      if (!memberships[selectedGroup].includes(id)) memberships[selectedGroup].push(id);
-      localStorage.setItem("groupMemberships", JSON.stringify(memberships));
-      setModalContent({ title: "Group (local)", message: "Added locally to group (server did not respond)." });
+      setModalContent({ title: "Failed", message: "Could not add movie to group." });
       setShowModal(true);
     } finally {
       setJoining(false);
@@ -367,7 +409,10 @@ export default function SpecificMovie() {
               <select value={selectedGroup} onChange={e => setSelectedGroup(e.target.value)} className="group-select">
                 <option value="">-- Select group --</option>
                 {localGroups.map(g => (
-                  <option key={g.id} value={g.id}>{g.name}</option>
+                  <option key={`local-${g.id}`} value={g.id}>{g.name}</option>
+                ))}
+                {serverGroups && serverGroups.filter(g => Number(g.role_status) === 1 || Number(g.role_status) === 2).map(g => (
+                  <option key={`srv-${g.group_id || g.id}`} value={g.group_id || g.id}>{g.name || g.group_name || g.groupName || `Group ${g.group_id || g.id}`}</option>
                 ))}
               </select>
               <button onClick={joinSelectedGroup} disabled={joining} className="btn" style={{ marginTop: 8 }}>

@@ -9,6 +9,8 @@ export default function Groups() {
   const [joinedIds, setJoinedIds] = useState(new Set());
 
   const API_BASE = process.env.REACT_APP_API_URL || ""; // empty -> relative to current origin
+  const token = localStorage.getItem("token");
+  const loggedIn = Boolean(token);
 
   function decodeJwt(token) {
     try {
@@ -69,7 +71,60 @@ export default function Groups() {
 
       if (!cancelled) {
         if (Array.isArray(data)) {
-          setGroups(typeof limit === "number" ? data.slice(0, limit) : data);
+          const groupsList = typeof limit === "number" ? data.slice(0, limit) : data;
+          // attempt to fetch owner username for each group (uses existing members endpoint)
+          try {
+            const token = localStorage.getItem("token");
+            const memberHeaders = {
+              "Content-Type": "application/json",
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            };
+
+            const groupsWithOwner = await Promise.all(groupsList.map(async (g) => {
+              const gid = getGroupId(g);
+              try {
+                const r = await fetch(`${base}/groups/members/${gid}`, { method: "GET", headers: memberHeaders });
+                if (r.ok) {
+                  const members = await r.json();
+                  // owner is the member with role_status === 1, or fallback to group's account_id
+                  const owner = members.find(m => Number(m.role_status) === 1) || members.find(m => Number(m.account_id) === Number(g.account_id));
+                  return { ...g, owner_username: owner?.username ?? null };
+                }
+              } catch (e) {
+                // ignore per-group failures; leave owner null
+              }
+              return { ...g, owner_username: null };
+            }));
+
+            setGroups(groupsWithOwner);
+          } catch (e) {
+            // if owner fetch fails entirely, fall back to raw list
+            setGroups(groupsList);
+          }
+
+          // If the backend included role_status for the requesting user, populate
+          // the joinedIds set with groups that are in pending state (role_status === 3).
+          try {
+            const pendingSet = new Set();
+            const checkList = Array.isArray(data) ? data : [];
+            checkList.forEach(g => {
+              const rs = Number(getGroupRole(g) ?? 0);
+              if (rs === 3) {
+                const gid = getGroupId(g);
+                if (gid != null) pendingSet.add(Number(gid));
+              }
+            });
+            if (pendingSet.size > 0) {
+              setJoinedIds(prev => {
+                const s = new Set(prev);
+                pendingSet.forEach(id => s.add(id));
+                return s;
+              });
+            }
+          } catch (e) {
+            // defensive: don't break UI if mapping fails
+            console.warn("Groups: could not derive pending ids", e);
+          }
         } else {
           setGroups([]);
         }
@@ -184,14 +239,8 @@ export default function Groups() {
     }
   }
 
-  // new: show only groups where user is NOT owner/member (role !== 1 && role !== 2)
-  const filteredGroups = groups.filter(g => {
-    const r = getGroupRole(g);
-    return r !== 1 && r !== 2;
-  });
-
-  // if there are no groups to join, fall back to showing all groups so user still sees created groups
-  const displayGroups = filteredGroups.length > 0 ? filteredGroups : groups;
+  // Show all groups. Frontend will decide action buttons per group based on role_status
+  const displayGroups = groups;
 
   return (
     <div>
@@ -217,7 +266,8 @@ export default function Groups() {
             {displayGroups.map(group => {
               const gid = getGroupId(group);
               const role = getGroupRole(group);
-              const pending = joinedIds.has(Number(gid));
+              // pending if client set (joinedIds) or backend indicates pending via role_status === 3
+              const pending = joinedIds.has(Number(gid)) || Number(role) === 3;
 
               return (
                 <div key={gid} className="group-card">
@@ -233,13 +283,26 @@ export default function Groups() {
                     <Link to={`/group/${gid}`} style={{ textDecoration: "none", color: "inherit" }}>
                       <h3 style={{ margin: 0 }}>{group.name}</h3>
                     </Link>
+                    {group.owner_username ? (
+                      <p style={{ margin: "6px 0 0", color: "#666", fontSize: 13 }}>Owner: {group.owner_username}</p>
+                    ) : null}
                     <p style={{ margin: "6px 0 0", color: "#444" }}>{group.description}</p>
                   </div>
 
                   <div className="group-action">
-                    {pending ? (
+                    {role === 1 ? (
+                      <Link to={`/handlegroup/${gid}`} style={{ textDecoration: 'none' }}>
+                        <button className="btn" style={{ padding: "8px 16px" }}>Manage</button>
+                      </Link>
+                    ) : role === 2 ? (
+                      <button className="btn" disabled style={{ padding: "8px 16px", background: '#ddd' }}>Member</button>
+                    ) : !loggedIn ? (
+                      <Link to="/login" style={{ textDecoration: 'none' }}>
+                        <button className="btn" style={{ padding: "8px 16px" }}>Login to Join</button>
+                      </Link>
+                    ) : pending ? (
                       <button className="btn" disabled style={{ background: "#ddd", padding: "8px 16px" }}>
-                        Pending approval
+                        Pending request
                       </button>
                     ) : (
                       <button

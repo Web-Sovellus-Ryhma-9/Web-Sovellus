@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import "./styles/pagestyles.css";
@@ -9,6 +9,12 @@ export default function CreateGroup() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      navigate("/login");
+    }
+  }, [navigate]);
   const [showModal, setShowModal] = useState(false);
   const [modalContent, setModalContent] = useState({ title: "", message: "" });
 

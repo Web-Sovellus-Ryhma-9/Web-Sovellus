@@ -9,6 +9,7 @@ export default function HandleGroup() {
   const [groupName, setGroupName] = useState("Group name (placeholder)");
   const [newName, setNewName] = useState("");
   const [members, setMembers] = useState([]);
+  const [isOwner, setIsOwner] = useState(false);
   const params = useParams();
   const navigate = useNavigate();
   const API_BASE = process.env.REACT_APP_API_URL || "";
@@ -35,8 +36,10 @@ export default function HandleGroup() {
         const g = (groups || []).find(gr => String(gr.id) === String(groupId) || String(gr.group_id) === String(groupId));
         if (g && g.name) {
           setGroupName(g.name);
+          setIsOwner(Number(g.role_status) === 1);
         } else if (g && g.group_name) {
           setGroupName(g.group_name);
+          setIsOwner(Number(g.role_status) === 1);
         }
 
         // fetch members for this group
@@ -211,6 +214,37 @@ export default function HandleGroup() {
                     <li key={m.member_id ?? m.account_id} className="request-item">
                       <span className="request-user">{m.username ?? m.account_id}</span>
                       <span style={{ marginLeft: 8, color: "#666" }}>{m.role_status === 1 ? "Owner" : "Member"}</span>
+                      {isOwner && m.role_status !== 1 && (
+                        <button
+                          className="btn danger"
+                          style={{ marginLeft: 12 }}
+                          onClick={async () => {
+                            if (!confirm(`Remove ${m.username || m.account_id} from group?`)) return;
+                            try {
+                              const token = localStorage.getItem('token');
+                              const idToDelete = m.member_id || m.account_id;
+                              const delUrl = `${API_BASE}/groups/members/${idToDelete}`;
+                              const headers = {
+                                'Content-Type': 'application/json',
+                                ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                              };
+                              const res = await fetch(delUrl, { method: 'DELETE', headers });
+                              if (!res.ok) {
+                                const body = await res.json().catch(() => ({}));
+                                alert(body.error || `Failed to remove member (status ${res.status})`);
+                                return;
+                              }
+                              // remove from UI
+                              setMembers(prev => prev.filter(x => (x.member_id || x.account_id) !== (m.member_id || m.account_id)));
+                            } catch (err) {
+                              console.error('[HandleGroup] remove member error', err);
+                              alert('Network error while removing member');
+                            }
+                          }}
+                        >
+                          Remove
+                        </button>
+                      )}
                     </li>
                   ))}
                 </ul>

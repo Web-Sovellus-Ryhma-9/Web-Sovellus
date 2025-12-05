@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS groupList (
   group_id   SERIAL PRIMARY KEY,
   account_id INTEGER NOT NULL REFERENCES account(account_id) ON DELETE CASCADE,
   group_name VARCHAR(255) NOT NULL,
-  role_status INTEGER NOT NULL DEFAULT 3, -- 1=admin, 2=member, 3=not member
+  role_status INTEGER NOT NULL DEFAULT 0, -- role_status mapping: 0=not member, 1=owner, 2=member, 3=pending
   created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
 );
 
@@ -56,7 +56,7 @@ CREATE TABLE IF NOT EXISTS group_members (
   member_id SERIAL PRIMARY KEY,
   group_id INTEGER NOT NULL REFERENCES groupList(group_id) ON DELETE CASCADE,
   account_id INTEGER NOT NULL REFERENCES account(account_id) ON DELETE CASCADE,
-  role_status INTEGER NOT NULL DEFAULT 3, -- 1=owner, 2=member, 3=pending
+  role_status INTEGER NOT NULL DEFAULT 3, -- 1=owner, 2=member, 3=pending (0 = not member / no membership row)
   joined_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
   UNIQUE (group_id, account_id)
 );
