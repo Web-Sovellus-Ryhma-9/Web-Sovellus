@@ -36,7 +36,8 @@ export default function OwnGroups() {
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         };
 
-        const url = `${API_BASE || ""}/groups/getOwnGroups`;
+        // Use public endpoint that returns role_status for the requesting user
+        const url = `${API_BASE || ""}/groups/getGroups`;
         console.debug("OwnGroups: fetching", url, "hasToken:", !!token);
         const res = await fetch(url, { headers });
         console.debug("OwnGroups: response status", res.status);
@@ -55,11 +56,21 @@ export default function OwnGroups() {
           return;
         }
         const data = await res.json();
-        const normalized = (data || []).map((g) => ({
+        // filter groups where the requesting user is the owner or a member (role_status === 1 or 2)
+        const currentAccountId = Number(JSON.parse(localStorage.getItem('account') || '{}').account_id || 0);
+        const mine = (data || []).filter(g => {
+          const rs = Number(g.role_status || 0);
+          if (rs === 1 || rs === 2) return true;
+          // fallback: include if this group was created by current user
+          if (Number(g.account_id) === currentAccountId && currentAccountId > 0) return true;
+          return false;
+        });
+        const normalized = mine.map((g) => ({
           group_id: g.group_id || g.id || g.groupId,
           group_name: g.group_name || g.name,
           description: g.description || g.desc || "",
           image: g.image || g.image_url || null,
+          isOwner: Number(g.role_status || 0) === 1 || (Number(g.account_id) === currentAccountId && currentAccountId > 0),
         }));
         if (!cancelled) setGroups(normalized);
       } catch (e) {
@@ -144,9 +155,15 @@ export default function OwnGroups() {
               </div>
 
               <div className="group-action" style={{ marginLeft: 12 }}>
-                <button className="btn" onClick={() => handleManage(g)}>
-                  Manage
-                </button>
+                {g.isOwner ? (
+                  <button className="btn" onClick={() => handleManage(g)}>
+                    Manage
+                  </button>
+                ) : (
+                  <button className="btn" disabled style={{ background: '#ddd' }}>
+                    Member
+                  </button>
+                )}
               </div>
             </div>
           ))}

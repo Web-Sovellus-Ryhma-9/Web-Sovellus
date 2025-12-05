@@ -1,26 +1,30 @@
 import { Router } from "express";
-import { createGroup, getOwnGroups, getGroups, deleteGroup, getGroupMembers, requestJoinGroup, approveMember } from "../controllers/groupList_controller.js";
+import {
+  getGroups,
+  createNewGroup,
+  deleteGroupHandler,
+  getMembers,
+  joinGroupHandler,
+  approveMemberHandler,
+  deleteMemberHandler,
+} from "../controllers/group_controller.js";
 
-const groupListRouter = Router();
+const router = Router();
 
+// Get groups (public). Response includes role_status for requesting user when authenticated.
+router.get("/getGroups", getGroups);
+router.get("/", getGroups);
 
+// Create group (authenticated)
+router.post("/creategroup", createNewGroup);
 
-// POST to "/" — mount your router in main server as app.use("/api/groups", groupListRouter)
-groupListRouter.post("/creategroup", createGroup);
+// Delete group (owner)
+router.delete("/delete/:id", deleteGroupHandler);
 
-// GET own groups at "/" (requires Authorization header)
-groupListRouter.get("/getOwnGroups", getOwnGroups);
+// Members: list, join, approve, delete
+router.get("/members/:id", getMembers);
+router.post("/members/join", joinGroupHandler);
+router.post("/members/approve", approveMemberHandler);
+router.delete("/members/:id", deleteMemberHandler);
 
-groupListRouter.get("/getGroups", getGroups);
-
-groupListRouter.delete("/delete/:id", deleteGroup);
-
-groupListRouter.get("/members/:id", getGroupMembers);
-
-// POST to request join (body: { group_id })
-groupListRouter.post("/members/join", requestJoinGroup);
-
-// POST to approve member (body: { group_id, account_id }) — protect in production
-groupListRouter.post("/members/approve", approveMember);
-
-export default groupListRouter;
+export default router;
