@@ -6,6 +6,9 @@ import { useParams, useNavigate } from "react-router-dom";
 export default function HandleGroup() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showRename, setShowRename] = useState(false);
+  const [groupDescription, setGroupDescription] = useState("");
+  const [editingDesc, setEditingDesc] = useState(false);
+  const [descValue, setDescValue] = useState("");
   const [groupName, setGroupName] = useState("Group name (placeholder)");
   const [newName, setNewName] = useState("");
   const [members, setMembers] = useState([]);
@@ -34,11 +37,9 @@ export default function HandleGroup() {
         }
         const groups = await res.json().catch(() => []);
         const g = (groups || []).find(gr => String(gr.id) === String(groupId) || String(gr.group_id) === String(groupId));
-        if (g && g.name) {
-          setGroupName(g.name);
-          setIsOwner(Number(g.role_status) === 1);
-        } else if (g && g.group_name) {
-          setGroupName(g.group_name);
+        if (g) {
+          setGroupName(g.name || g.group_name || g.groupName || g.group_name);
+          setGroupDescription(g.description || "");
           setIsOwner(Number(g.role_status) === 1);
         }
 
@@ -149,8 +150,35 @@ export default function HandleGroup() {
     e?.preventDefault();
     const value = (newName || "").trim();
     if (!value) return;
-    setGroupName(value);
-    setShowRename(false);
+    (async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const groupId = params.groupId || params.id;
+        if (!groupId) {
+          alert("Missing group id — cannot rename");
+          setShowRename(false);
+          return;
+        }
+        const url = `${API_BASE}/groups/update/${groupId}`;
+        const headers = {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        };
+        const body = JSON.stringify({ group_name: value });
+        const res = await fetch(url, { method: "PUT", headers, body });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          alert(data.error || `Failed to rename group (status ${res.status})`);
+          return;
+        }
+        // success: update UI
+        setGroupName(value);
+        setShowRename(false);
+      } catch (err) {
+        console.error('[HandleGroup] rename error', err);
+        alert('Network error while renaming group');
+      }
+    })();
   }
 
   return (
@@ -160,6 +188,7 @@ export default function HandleGroup() {
         <div className="handle-group-layout">
           <aside className="handle-group-sidebar">
             <h2 className="group-title">{groupName}</h2>
+            {groupDescription ? <p className="group-description" style={{ marginTop: 6, color: '#444' }}>{groupDescription}</p> : null}
             <div className="handle-actions">
               <button
                 className="btn"
@@ -169,6 +198,9 @@ export default function HandleGroup() {
               </button>
               <button className="btn" onClick={handleOpenRename}>
                 Rename Group
+              </button>
+              <button className="btn" onClick={() => { setDescValue(groupDescription || ""); setEditingDesc(true); }}>
+                Edit Description
               </button>
             </div>
           </aside>
@@ -312,6 +344,48 @@ export default function HandleGroup() {
                 <button type="submit" className="btn primary" disabled={!newName.trim()}>
                   Save
                 </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {editingDesc && (
+        <div className="modal-overlay" onClick={() => setEditingDesc(false)}>
+          <div className="modal" role="dialog" aria-modal="true" aria-labelledby="edit-desc-title" onClick={(e) => e.stopPropagation()}>
+            <h3 id="edit-desc-title">Edit Description</h3>
+            <form className="form-grid" onSubmit={(e) => { e.preventDefault(); (async () => {
+              try {
+                const token = localStorage.getItem("token");
+                const groupId = params.groupId || params.id;
+                if (!groupId) {
+                  alert("Missing group id — cannot update description");
+                  setEditingDesc(false);
+                  return;
+                }
+                const url = `${API_BASE}/groups/update/${groupId}`;
+                const headers = { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) };
+                const body = JSON.stringify({ description: descValue });
+                const res = await fetch(url, { method: "PUT", headers, body });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok) {
+                  alert(data.error || `Failed to update description (status ${res.status})`);
+                  return;
+                }
+                setGroupDescription(descValue);
+                setEditingDesc(false);
+              } catch (err) {
+                console.error('[HandleGroup] update description error', err);
+                alert('Network error while updating description');
+              }
+            })(); }}>
+              <label className="label" htmlFor="edit-desc-input">
+                Description
+                <textarea id="edit-desc-input" className="textarea-field" value={descValue} onChange={(e) => setDescValue(e.target.value)} autoFocus />
+              </label>
+              <div className="modal-actions">
+                <button type="button" className="btn" onClick={() => setEditingDesc(false)}>Cancel</button>
+                <button type="submit" className="btn primary">Save</button>
               </div>
             </form>
           </div>

@@ -10,6 +10,7 @@ export default function SpecificGroup() {
   const [members, setMembers] = useState([]);
   const [movies, setMovies] = useState([]);
   const [groupName, setGroupName] = useState("Group Name (placeholder)");
+  const [groupDescription, setGroupDescription] = useState("");
   const [isOwner, setIsOwner] = useState(false);
   const [isMember, setIsMember] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -17,6 +18,24 @@ export default function SpecificGroup() {
   
 
   const API_BASE = process.env.REACT_APP_API_URL || "";
+
+  function decodeJwt(token) {
+    try {
+      const p = token.split(".")[1];
+      if (!p) return null;
+      const json = JSON.parse(atob(p.replace(/-/g, "+").replace(/_/g, "/")));
+      return json;
+    } catch (err) {
+      return null;
+    }
+  }
+
+  function getCurrentAccountId() {
+    const token = localStorage.getItem('token');
+    if (!token) return null;
+    const payload = decodeJwt(token);
+    return payload ? (payload.account_id ?? payload.accountId ?? payload.id ?? null) : null;
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -31,6 +50,7 @@ export default function SpecificGroup() {
           const g = (gjson || []).find(x => String(x.group_id) === String(groupId) || String(x.id) === String(groupId));
           if (g && !cancelled) {
             setGroupName(g.name || g.group_name || g.groupName || g.group_name);
+            setGroupDescription(g.description || "");
             setIsOwner(Number(g.role_status) === 1);
             setIsMember(Number(g.role_status) === 2 || Number(g.role_status) === 1);
           }
@@ -77,8 +97,41 @@ export default function SpecificGroup() {
   }, [loading, isMember, navigate]);
 
   function handleConfirmLeave() {
-    // Leave group: remove from group_members via API if logged in, otherwise local fallback
-    setShowLeaveConfirm(false);
+    setShowLeaveConfirm(true);
+  }
+
+  async function confirmLeave() {
+    try {
+      // owner cannot leave
+      if (isOwner) {
+        // keep modal open to show owner message (handled in render)
+        return;
+      }
+
+      const token = localStorage.getItem('token');
+      const accountId = getCurrentAccountId();
+      if (!token || !accountId) {
+        // not logged in: just close modal and navigate away
+        setShowLeaveConfirm(false);
+        navigate('/groups');
+        return;
+      }
+
+      const url = `${API_BASE}/groups/members/${accountId}`;
+      const headers = { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) };
+      const res = await fetch(url, { method: 'DELETE', headers });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        alert(body.error || `Failed to leave group (status ${res.status})`);
+        return;
+      }
+      // success -> navigate back to groups list
+      setShowLeaveConfirm(false);
+      navigate('/groups');
+    } catch (err) {
+      console.error('[SpecificGroup] leave error', err);
+      alert('Network error while leaving group');
+    }
   }
 
   if (loading) {
@@ -97,6 +150,7 @@ export default function SpecificGroup() {
       <Header />
       <div className="page-container group-page">
         <h2 className="group-title">{groupName}</h2>
+        {groupDescription ? <p className="group-description" style={{ marginTop: 6, color: '#444' }}>{groupDescription}</p> : null}
 
         {/* Movies section */}
         <div className="group-movies-section">
@@ -160,12 +214,24 @@ export default function SpecificGroup() {
               aria-labelledby="leave-group-title"
               onClick={(e) => e.stopPropagation()}
             >
-              <h3 id="leave-group-title">Leave Group</h3>
-              <p>Are you sure you want to leave the group?</p>
-              <div className="modal-actions">
-                <button className="btn" onClick={() => setShowLeaveConfirm(false)}>Cancel</button>
-                <button className="btn danger" onClick={handleConfirmLeave}>Leave</button>
-              </div>
+              {isOwner ? (
+                <>
+                  <h3 id="leave-group-title">Cannot Leave Group</h3>
+                  <p>You cannot leave the group as a owner.</p>
+                  <div className="modal-actions">
+                    <button className="btn" onClick={() => setShowLeaveConfirm(false)}>OK</button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <h3 id="leave-group-title">Leave Group</h3>
+                  <p>Are you sure you want to leave the group?</p>
+                  <div className="modal-actions">
+                    <button className="btn" onClick={() => setShowLeaveConfirm(false)}>Cancel</button>
+                    <button className="btn danger" onClick={confirmLeave}>Leave</button>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         )}

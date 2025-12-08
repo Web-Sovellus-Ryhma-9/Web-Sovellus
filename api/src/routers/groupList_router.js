@@ -3,6 +3,7 @@ import {
   getGroups,
   createNewGroup,
   deleteGroupHandler,
+  updateGroupHandler,
   getMembers,
   joinGroupHandler,
   approveMemberHandler,
@@ -20,6 +21,9 @@ router.post("/creategroup", createNewGroup);
 
 // Delete group (owner)
 router.delete("/delete/:id", deleteGroupHandler);
+
+// Update group (rename) - owner only
+router.put("/update/:id", updateGroupHandler);
 
 // Members: list, join, approve, delete
 router.get("/members/:id", getMembers);

@@ -3,6 +3,7 @@ import {
   getAllGroups,
   getGroupById,
   createGroup,
+  updateGroupName,
   deleteGroup,
   getMembersForGroup,
   findMember,
@@ -68,10 +69,11 @@ export async function createNewGroup(req, res, next) {
     if (!acct) return res.status(401).json({ error: "Unauthorized" });
     const account_id = acct.account_id;
     const { group_name, name } = req.body || {};
+    const { description } = req.body || {};
     const gname = (group_name || name || "").trim();
     if (!gname) return res.status(400).json({ error: "Missing group name" });
 
-    const created = await createGroup(account_id, gname);
+    const created = await createGroup(account_id, gname, description || null);
     // add owner as member with role_status 1
     await addMember(created.group_id, account_id, 1).catch(() => null);
 
@@ -176,6 +178,29 @@ export async function deleteMemberHandler(req, res, next) {
 
     const removed = await removeMemberById(m.member_id);
     res.json({ message: "Member removed", removed });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function updateGroupHandler(req, res, next) {
+  try {
+    const acct = extractAccount(req);
+    if (!acct) return res.status(401).json({ error: "Unauthorized" });
+    const account_id = acct.account_id;
+    const groupId = req.params.id;
+    const { group_name, name, description } = req.body || {};
+    const newName = (group_name || name || "").trim();
+    if (!groupId) return res.status(400).json({ error: "Missing group id" });
+    if (!newName && typeof description === 'undefined') return res.status(400).json({ error: "Missing new group name or description" });
+
+    const g = await getGroupById(groupId);
+    if (!g) return res.status(404).json({ error: "Group not found" });
+    if (Number(g.account_id) !== Number(account_id)) return res.status(403).json({ error: "Forbidden" });
+
+    const updated = await updateGroupName(groupId, newName || g.group_name, typeof description === 'undefined' ? g.description : description);
+    if (!updated) return res.status(500).json({ error: "Failed to update group" });
+    res.json({ message: "Group updated", group: { group_id: updated.group_id, group_name: updated.group_name, description: updated.description } });
   } catch (err) {
     next(err);
   }
