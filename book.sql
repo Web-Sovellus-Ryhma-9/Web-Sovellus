@@ -61,3 +61,15 @@ CREATE TABLE IF NOT EXISTS group_members (
   joined_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
   UNIQUE (group_id, account_id)
 );
+
+-- Movies added to groups (one movie can appear in many groups)
+DROP TABLE IF EXISTS group_movies;
+CREATE TABLE IF NOT EXISTS group_movies (
+  id SERIAL PRIMARY KEY,
+  group_id INTEGER NOT NULL REFERENCES groupList(group_id) ON DELETE CASCADE,
+  movie_id VARCHAR(255) NOT NULL,
+  title VARCHAR(255),
+  image TEXT,
+  added_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+  CONSTRAINT uniq_group_movie UNIQUE (group_id, movie_id)
+);

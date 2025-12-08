@@ -120,8 +120,20 @@ export default function SpecificMovie() {
           const rf = await fetch(`${API_BASE}/favorites`, { headers: { Authorization: `Bearer ${token}` } });
           if (rf.ok) {
             const favJson = await rf.json();
-            // map server shape { movie_id, title } -> { id, title }
-            const fav = (favJson || []).map(f => ({ id: String(f.movie_id), title: f.title || null }));
+            // map server shape to include mediaType (movie/tv)
+            const fav = (favJson || []).map(f => {
+              let mediaType = 'movie';
+              let mediaId = f.movie_id ?? f.movieId ?? f.id ?? null;
+              if ((f.tv_id ?? f.tvId) != null) {
+                mediaType = 'tv';
+                mediaId = f.tv_id ?? f.tvId;
+              } else if (f.media_type) {
+                mediaType = String(f.media_type) === 'tv' ? 'tv' : 'movie';
+                mediaId = f.media_id ?? mediaId ?? f.id;
+              }
+              mediaId = mediaId ?? f.movie_id ?? f.tv_id ?? f.id ?? '';
+              return { id: String(mediaId), title: f.title || null, mediaType };
+            });
             if (!cancelled) setFavorites(fav);
           } else {
             // fallback to localStorage
@@ -207,7 +219,7 @@ export default function SpecificMovie() {
       return;
     }
 
-    const newFav = { id, title: movie?.title || `Movie ${id}` };
+    const newFav = { id, title: movie?.title || `Movie ${id}`, mediaType };
     const next = [newFav, ...favorites];
     setFavorites(next);
     localStorage.setItem("favorites", JSON.stringify(next));
@@ -216,7 +228,7 @@ export default function SpecificMovie() {
       const token = localStorage.getItem("token");
       const headers = { "Content-Type": "application/json" };
       if (token) headers.Authorization = `Bearer ${token}`;
-      await fetch(`${API_BASE}/favorites`, { method: "POST", headers, body: JSON.stringify({ id: String(newFav.id), title: newFav.title }) });
+      await fetch(`${API_BASE}/favorites`, { method: "POST", headers, body: JSON.stringify({ id: String(newFav.id), title: newFav.title, media_type: mediaType }) });
     } catch (e) {
       // ignore
     }
@@ -234,33 +246,36 @@ export default function SpecificMovie() {
       const sg = serverGroups.find(g => String(g.group_id || g.id) === String(selectedGroup) || String(g.id) === String(selectedGroup));
       const token = localStorage.getItem('token');
       if (sg) {
-        // fetch members and check membership
-        const headers = token ? { Authorization: `Bearer ${token}` } : {};
-        const mres = await fetch(`${API_BASE}/groups/members/${selectedGroup}`, { headers });
-        if (mres.ok) {
-          const mrows = await mres.json();
-          const payload = token ? JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))) : null;
-          const myId = payload ? (payload.account_id || payload.accountId || payload.id) : null;
-          const amember = Array.isArray(mrows) && mrows.some(m => (m.account_id && String(m.account_id) === String(myId)) && (m.role_status === 1 || m.role_status === 2));
-          if (!amember) {
-            setModalContent({ title: "Not a member", message: "You must be a member of the selected group to add movies. Request to join first." });
+        // for server group, post to backend API
+        const headers = token ? { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } : { 'Content-Type': 'application/json' };
+        const body = JSON.stringify({ group_id: selectedGroup, movie_id: String(id), title: movie?.title || `Movie ${id}`, image: movie?.image || null });
+        try {
+          const r = await fetch(`${API_BASE}/groups/movies/add`, { method: 'POST', headers, body });
+          if (r.status === 201) {
+            setModalContent({ title: 'Added', message: 'Movie added to group.' });
             setShowModal(true);
-            setJoining(false);
-            return;
+          } else if (r.status === 409) {
+            setModalContent({ title: 'Already added', message: 'This movie is already in the selected group.' });
+            setShowModal(true);
+          } else if (r.status === 401 || r.status === 403) {
+            setModalContent({ title: 'Not allowed', message: 'You are not allowed to add movies to this group.' });
+            setShowModal(true);
+          } else {
+            setModalContent({ title: 'Failed', message: 'Could not add movie to group.' });
+            setShowModal(true);
           }
-        } else {
-          // could not verify membership — prevent adding
-          setModalContent({ title: "Membership check failed", message: "Could not verify group membership. Try again later." });
+        } catch (e) {
+          setModalContent({ title: 'Failed', message: 'Network error while adding movie.' });
           setShowModal(true);
-          setJoining(false);
-          return;
         }
+        setJoining(false);
+        return;
       }
 
-      // Add movie to group movies in localStorage
+      // Add movie to group movies in localStorage (local group)
       const key = `groupMovies:${selectedGroup}`;
       const existing = JSON.parse(localStorage.getItem(key) || '[]');
-      const movieObj = { id: String(id), title: movie?.title || `Movie ${id}`, image: movie?.image || null };
+      const movieObj = { id: String(id), title: movie?.title || `Movie ${id}`, image: movie?.image || null, mediaType };
       if (!existing.some(m => String(m.id) === String(movieObj.id))) {
         existing.unshift(movieObj);
         localStorage.setItem(key, JSON.stringify(existing));

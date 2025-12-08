@@ -71,13 +71,25 @@ export default function SpecificGroup() {
         // ignore
       }
 
-      // load movies from localStorage
+      // load movies from server; fall back to localStorage
       try {
-        const key = `groupMovies:${groupId}`;
-        const gm = JSON.parse(localStorage.getItem(key) || '[]');
-        if (!cancelled) setMovies(Array.isArray(gm) ? gm : []);
+        const mres2 = await fetch(`${API_BASE}/groups/movies/${groupId}`);
+        if (mres2.ok) {
+          const mv = await mres2.json();
+          if (!cancelled) setMovies(Array.isArray(mv) ? mv : []);
+        } else {
+          const key = `groupMovies:${groupId}`;
+          const gm = JSON.parse(localStorage.getItem(key) || '[]');
+          if (!cancelled) setMovies(Array.isArray(gm) ? gm : []);
+        }
       } catch (e) {
-        setMovies([]);
+        try {
+          const key = `groupMovies:${groupId}`;
+          const gm = JSON.parse(localStorage.getItem(key) || '[]');
+          if (!cancelled) setMovies(Array.isArray(gm) ? gm : []);
+        } catch (ee) {
+          if (!cancelled) setMovies([]);
+        }
       }
       if (!cancelled) setLoading(false);
     }
@@ -161,7 +173,7 @@ export default function SpecificGroup() {
             ) : (
               movies.map(m => (
                 <div key={m.id} className="group-movie-item" style={{ display: 'flex', flexDirection: 'column', alignItems: 'stretch' }}>
-                  <Link to={`/movie/${m.id}`} className="group-movie-link">
+                  <Link to={`/${m.mediaType || m.media_type || 'movie'}/${m.id}`} className="group-movie-link">
                     <div className="group-movie-card">
                       <div className="group-movie-image">
                         {m.image ? <img src={m.image} alt={m.title} /> : <div className="group-movie-placeholder">Image</div>}
@@ -178,6 +190,21 @@ export default function SpecificGroup() {
                         const ok = window.confirm(`Remove "${m.title}" from this group?`);
                         if (!ok) return;
                         try {
+                          // try server delete first (requires auth)
+                          const token = localStorage.getItem('token');
+                          if (token) {
+                            const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` };
+                            const res = await fetch(`${API_BASE}/groups/movies/remove`, { method: 'POST', headers, body: JSON.stringify({ group_id: groupId, movie_id: String(m.id || m.movie_id) }) });
+                            if (res.ok) {
+                              // remove locally too
+                              const updated = (movies || []).filter(x => String(x.id || x.movie_id) !== String(m.id || m.movie_id));
+                              setMovies(updated);
+                              return;
+                            }
+                            // if server delete failed due to auth or not found, fall back to local removal
+                          }
+
+                          // localStorage fallback
                           const key = `groupMovies:${groupId}`;
                           const curr = JSON.parse(localStorage.getItem(key) || '[]');
                           const updated = Array.isArray(curr) ? curr.filter(x => String(x.id) !== String(m.id)) : [];

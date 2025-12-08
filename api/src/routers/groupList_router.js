@@ -8,6 +8,9 @@ import {
   joinGroupHandler,
   approveMemberHandler,
   deleteMemberHandler,
+  getGroupMovies,
+  addMovieToGroupHandler,
+  removeMovieFromGroupHandler,
 } from "../controllers/group_controller.js";
 
 const router = Router();
@@ -30,5 +33,10 @@ router.get("/members/:id", getMembers);
 router.post("/members/join", joinGroupHandler);
 router.post("/members/approve", approveMemberHandler);
 router.delete("/members/:id", deleteMemberHandler);
+
+// Group movies: list, add, remove
+router.get('/movies/:id', getGroupMovies);
+router.post('/movies/add', addMovieToGroupHandler);
+router.post('/movies/remove', removeMovieFromGroupHandler);
 
 export default router;

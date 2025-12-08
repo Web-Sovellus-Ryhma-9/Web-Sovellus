@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import { getMovieDetails, getTvDetails } from "../models/tmdb_model.js";
 import {
   getAllGroups,
   getGroupById,
@@ -12,6 +13,9 @@ import {
   updateMemberRole,
   removeMemberById,
   removeMemberByAccount,
+  getMoviesForGroup,
+  addGroupMovie,
+  removeGroupMovie,
 } from "../models/group_model.js";
 
 const JWT_SECRET = process.env.JWT_SECRET || "dev_jwt_secret";
@@ -110,6 +114,97 @@ export async function getMembers(req, res, next) {
     const rows = await getMembersForGroup(groupId);
     // map fields to what frontend expects
     res.json(rows.map(r => ({ member_id: r.member_id, account_id: r.account_id, username: r.username, role_status: r.role_status })));
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function getGroupMovies(req, res, next) {
+  try {
+    const groupId = req.params.id;
+    if (!groupId) return res.status(400).json({ error: 'Missing group id' });
+    const rows = await getMoviesForGroup(groupId);
+    // Try to detect media_type for each saved id by querying TMDB proxy
+    const items = await Promise.all(rows.map(async (r) => {
+      const id = r.movie_id;
+      let media_type = 'movie';
+      try {
+        await getMovieDetails(id);
+        media_type = 'movie';
+      } catch (e1) {
+        try {
+          await getTvDetails(id);
+          media_type = 'tv';
+        } catch (e2) {
+          media_type = 'movie';
+        }
+      }
+      return { id: id, db_id: r.id, group_id: r.group_id, movie_id: id, title: r.title, image: r.image, added_at: r.added_at, media_type };
+    }));
+    res.json(items);
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function addMovieToGroupHandler(req, res, next) {
+  try {
+    const acct = extractAccount(req);
+    if (!acct) return res.status(401).json({ error: 'Unauthorized' });
+    const account_id = acct.account_id;
+    const { group_id, movie_id, title, image, media_type: supplied_media_type } = req.body || {};
+    if (!group_id || !movie_id) return res.status(400).json({ error: 'Missing data' });
+
+    // must be member (role 1 owner or 2 member)
+    const membership = await findMember(group_id, account_id);
+    if (!membership || (Number(membership.role_status) !== 1 && Number(membership.role_status) !== 2)) {
+      // allow owner via group.owner check too
+      const g = await getGroupById(group_id);
+      if (!g || Number(g.account_id) !== Number(account_id)) return res.status(403).json({ error: 'Forbidden: not a member' });
+    }
+
+    // add, unique constraint will prevent duplicates
+    try {
+      const added = await addGroupMovie(group_id, movie_id, title || null, image || null);
+      // detect media_type if client didn't supply one; augment returned movie
+      let media_type = supplied_media_type || 'movie';
+      try {
+        if (!supplied_media_type) {
+          try { await getMovieDetails(movie_id); media_type = 'movie'; }
+          catch (e1) { try { await getTvDetails(movie_id); media_type = 'tv'; } catch (e2) { media_type = 'movie'; } }
+        }
+      } catch (err) {
+        media_type = supplied_media_type || 'movie';
+      }
+      res.status(201).json({ message: 'Movie added to group', movie: { ...added, media_type } });
+    } catch (e) {
+      // if unique violation, return 409
+      if (e && e.code === '23505') return res.status(409).json({ error: 'Movie already added' });
+      throw e;
+    }
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function removeMovieFromGroupHandler(req, res, next) {
+  try {
+    const acct = extractAccount(req);
+    if (!acct) return res.status(401).json({ error: 'Unauthorized' });
+    const account_id = acct.account_id;
+    const { group_id, movie_id } = req.body || {};
+    if (!group_id || !movie_id) return res.status(400).json({ error: 'Missing data' });
+
+    // only allow if requester is a group member (owner or member) or group owner
+    const membership = await findMember(group_id, account_id);
+    const g = await getGroupById(group_id);
+    const isOwner = g && Number(g.account_id) === Number(account_id);
+    const isMember = membership && (Number(membership.role_status) === 1 || Number(membership.role_status) === 2);
+    if (!isOwner && !isMember) return res.status(403).json({ error: 'Forbidden' });
+
+    const removed = await removeGroupMovie(group_id, movie_id);
+    if (!removed) return res.status(404).json({ error: 'Movie not found in group' });
+    res.json({ message: 'Movie removed', removed });
   } catch (err) {
     next(err);
   }
