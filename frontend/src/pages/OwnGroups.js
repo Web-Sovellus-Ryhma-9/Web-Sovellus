@@ -102,6 +102,9 @@ export default function OwnGroups() {
         <div className="page-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <h2 style={{ margin: 0 }}>Own Groups</h2>
           <div className="header-actions">
+            <Link to="/groups" style={{ textDecoration: "none" }}>
+              <button className="btn ghost">Groups</button>
+            </Link>
             <Link to="/creategroup" style={{ textDecoration: "none" }}>
               <button className="btn primary">Create Group</button>
             </Link>

@@ -1,26 +1,32 @@
 import pool from "../database.js";
 
 export async function getAllGroups() {
-  const sql = `SELECT group_id, account_id, group_name, created_at FROM groupList ORDER BY created_at DESC`;
+  const sql = `SELECT group_id, account_id, group_name, description, created_at FROM groupList ORDER BY created_at DESC`;
   const { rows } = await pool.query(sql);
   return rows;
 }
 
 export async function getGroupById(group_id) {
-  const sql = `SELECT group_id, account_id, group_name, created_at FROM groupList WHERE group_id = $1 LIMIT 1`;
+  const sql = `SELECT group_id, account_id, group_name, description, created_at FROM groupList WHERE group_id = $1 LIMIT 1`;
   const { rows } = await pool.query(sql, [group_id]);
   return rows[0];
 }
 
-export async function createGroup(account_id, group_name) {
-  const sql = `INSERT INTO groupList (account_id, group_name) VALUES ($1, $2) RETURNING group_id, account_id, group_name, created_at`;
-  const { rows } = await pool.query(sql, [account_id, String(group_name)]);
+export async function createGroup(account_id, group_name, description = null) {
+  const sql = `INSERT INTO groupList (account_id, group_name, description) VALUES ($1, $2, $3) RETURNING group_id, account_id, group_name, description, created_at`;
+  const { rows } = await pool.query(sql, [account_id, String(group_name), description]);
   return rows[0];
 }
 
 export async function deleteGroup(group_id) {
   const sql = `DELETE FROM groupList WHERE group_id = $1 RETURNING group_id`;
   const { rows } = await pool.query(sql, [group_id]);
+  return rows[0];
+}
+
+export async function updateGroupName(group_id, group_name, description = null) {
+  const sql = `UPDATE groupList SET group_name = $2, description = $3 WHERE group_id = $1 RETURNING group_id, account_id, group_name, description, created_at`;
+  const { rows } = await pool.query(sql, [group_id, String(group_name), description]);
   return rows[0];
 }
 

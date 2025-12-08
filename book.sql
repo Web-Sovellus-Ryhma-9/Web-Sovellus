@@ -13,7 +13,8 @@ CREATE TABLE IF NOT EXISTS groupList (
   group_id   SERIAL PRIMARY KEY,
   account_id INTEGER NOT NULL REFERENCES account(account_id) ON DELETE CASCADE,
   group_name VARCHAR(255) NOT NULL,
-  role_status INTEGER NOT NULL DEFAULT 0, -- role_status mapping: 0=not member, 1=owner, 2=member, 3=pending
+  description TEXT,
+  -- role_status removed from groupList: per-account role is stored in group_members
   created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
 );
 
