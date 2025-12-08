@@ -160,14 +160,39 @@ export default function SpecificGroup() {
               <div style={{ color: '#666' }}>No movies yet.</div>
             ) : (
               movies.map(m => (
-                <Link key={m.id} to={`/movie/${m.id}`} className="group-movie-link">
-                  <div className="group-movie-card">
-                    <div className="group-movie-image">
-                      {m.image ? <img src={m.image} alt={m.title} /> : <div className="group-movie-placeholder">Image</div>}
+                <div key={m.id} className="group-movie-item" style={{ display: 'flex', flexDirection: 'column', alignItems: 'stretch' }}>
+                  <Link to={`/movie/${m.id}`} className="group-movie-link">
+                    <div className="group-movie-card">
+                      <div className="group-movie-image">
+                        {m.image ? <img src={m.image} alt={m.title} /> : <div className="group-movie-placeholder">Image</div>}
+                      </div>
+                      <div className="group-movie-name">{m.title}</div>
                     </div>
-                    <div className="group-movie-name">{m.title}</div>
+                  </Link>
+                  <div style={{ marginTop: 6, display: 'flex', justifyContent: 'center' }}>
+                    <button
+                      className="btn danger"
+                      onClick={async (e) => {
+                        e.preventDefault();
+                        // confirm deletion
+                        const ok = window.confirm(`Remove "${m.title}" from this group?`);
+                        if (!ok) return;
+                        try {
+                          const key = `groupMovies:${groupId}`;
+                          const curr = JSON.parse(localStorage.getItem(key) || '[]');
+                          const updated = Array.isArray(curr) ? curr.filter(x => String(x.id) !== String(m.id)) : [];
+                          localStorage.setItem(key, JSON.stringify(updated));
+                          setMovies(updated);
+                        } catch (err) {
+                          console.error('[SpecificGroup] remove movie error', err);
+                          alert('Failed to remove movie');
+                        }
+                      }}
+                    >
+                      Delete
+                    </button>
                   </div>
-                </Link>
+                </div>
               ))
             )}
           </div>
