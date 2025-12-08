@@ -7,6 +7,7 @@ import {
   findFavoriteByAccountAndMovie,
   getFavoritesByListId,
 } from "../models/favourite_model.js";
+import { getMovieDetails, getTvDetails } from "../models/tmdb_model.js";
 
 const JWT_SECRET = process.env.JWT_SECRET || "dev_jwt_secret";
 
@@ -29,7 +30,24 @@ export async function getFavorites(req, res, next) {
 
     const rows = await getFavoritesByAccount(account_id);
     // include list metadata so frontend can generate share links
-    res.json(rows.map(r => ({ movie_id: r.movie_id, title: r.title, favourite_id: r.favourite_id, movielist: r.movielist || r.Movielist })));
+    // Try to detect media type (movie/tv) for each saved id by querying TMDB proxy
+    const items = await Promise.all(rows.map(async (r) => {
+      const id = r.movie_id;
+      let media_type = 'movie';
+      try {
+        await getMovieDetails(id);
+        media_type = 'movie';
+      } catch (e1) {
+        try {
+          await getTvDetails(id);
+          media_type = 'tv';
+        } catch (e2) {
+          media_type = 'movie';
+        }
+      }
+      return { movie_id: id, title: r.title, favourite_id: r.favourite_id, movielist: r.movielist || r.Movielist, media_type };
+    }));
+    res.json(items);
   } catch (err) {
     next(err);
   }
@@ -101,7 +119,22 @@ export async function getPublicList(req, res, next) {
     if (!rows || rows.length === 0) return res.status(404).json({ error: 'List not found or empty' });
 
     const listName = rows[0].movielist || rows[0].Movielist || 'Favorites';
-    const items = rows.map(r => ({ movie_id: r.movie_id, title: r.title }));
+    const items = await Promise.all(rows.map(async (r) => {
+      const id = r.movie_id;
+      let media_type = 'movie';
+      try {
+        await getMovieDetails(id);
+        media_type = 'movie';
+      } catch (e1) {
+        try {
+          await getTvDetails(id);
+          media_type = 'tv';
+        } catch (e2) {
+          media_type = 'movie';
+        }
+      }
+      return { movie_id: id, title: r.title, media_type };
+    }));
     res.json({ favourite_id, listName, items });
   } catch (err) {
     next(err);

@@ -29,14 +29,34 @@ export default function Profile() {
           const res = await fetch(`${API}/favorites`, { headers: { Authorization: `Bearer ${token}` } });
           if (!res.ok) throw new Error("no api");
           const data = await res.json();
-          // map server { movie_id, title } -> { id, title }
-          let mapped = (data || []).map(f => ({ id: String(f.movie_id), title: f.title, listId: f.favourite_id, listName: f.movielist || f.Movielist }));
-          // fetch thumbnails (TMDB proxy) in parallel
+          // map server favorites robustly and detect media type (movie/tv)
+          let mapped = (data || []).map(f => {
+            // determine id and media type from common server fields
+            let mediaType = 'movie';
+            let mediaId = f.movie_id ?? f.movieId ?? f.id ?? null;
+            if ((f.tv_id ?? f.tvId) != null) {
+              mediaType = 'tv';
+              mediaId = f.tv_id ?? f.tvId;
+            } else if (f.media_type) {
+              mediaType = String(f.media_type) === 'tv' ? 'tv' : 'movie';
+              mediaId = f.media_id ?? mediaId ?? f.id;
+            }
+            mediaId = mediaId ?? f.movie_id ?? f.tv_id ?? f.id ?? '';
+            return {
+              id: String(mediaId),
+              title: f.title,
+              mediaType,
+              listId: f.favourite_id ?? f.favouriteId,
+              listName: f.movielist ?? f.Movielist,
+            };
+          });
+
+          // fetch thumbnails (TMDB proxy) in parallel using the detected media type
           try {
             const thumbs = await Promise.all(
               mapped.map(async (m) => {
                 try {
-                  const dres = await fetch(`${API}/tmdb/movie/${encodeURIComponent(m.id)}`);
+                  const dres = await fetch(`${API}/tmdb/${m.mediaType || 'movie'}/${encodeURIComponent(m.id)}`);
                   if (!dres.ok) return { ...m, image: null };
                   const j = await dres.json();
                   const image = j.poster_path ? `https://image.tmdb.org/t/p/w154${j.poster_path}` : null;
@@ -50,6 +70,7 @@ export default function Profile() {
           } catch (e) {
             // ignore thumbnail errors
           }
+
           if (!cancelled) setFavorites(mapped);
         } else {
           // anonymous fallback
@@ -208,7 +229,7 @@ export default function Profile() {
                         )}
                       </div>
                       <div style={{ flex: 1 }}>
-                        <Link to={`/movie/${fav.id}`} style={{ textDecoration: 'none', color: '#222', fontWeight: 600 }}>{fav.title || fav.name || 'Unnamed'}</Link>
+                        <Link to={`/${fav.mediaType || 'movie'}/${fav.id}`} style={{ textDecoration: 'none', color: '#222', fontWeight: 600 }}>{fav.title || fav.name || 'Unnamed'}</Link>
                       </div>
                       <div>
                         <button onClick={() => removeFavorite(fav.id)} className="btn">Delete</button>

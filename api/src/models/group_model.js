@@ -78,3 +78,21 @@ export async function removeMemberByAccount(group_id, account_id) {
   const { rows } = await pool.query(sql, [group_id, account_id]);
   return rows[0];
 }
+
+export async function getMoviesForGroup(group_id) {
+  const sql = `SELECT id, group_id, movie_id, title, image, added_at FROM group_movies WHERE group_id = $1 ORDER BY added_at DESC`;
+  const { rows } = await pool.query(sql, [group_id]);
+  return rows;
+}
+
+export async function addGroupMovie(group_id, movie_id, title = null, image = null) {
+  const sql = `INSERT INTO group_movies (group_id, movie_id, title, image) VALUES ($1, $2, $3, $4) RETURNING id, group_id, movie_id, title, image, added_at`;
+  const { rows } = await pool.query(sql, [group_id, String(movie_id), title, image]);
+  return rows[0];
+}
+
+export async function removeGroupMovie(group_id, movie_id) {
+  const sql = `DELETE FROM group_movies WHERE group_id = $1 AND movie_id = $2 RETURNING id, group_id, movie_id`;
+  const { rows } = await pool.query(sql, [group_id, String(movie_id)]);
+  return rows[0];
+}
