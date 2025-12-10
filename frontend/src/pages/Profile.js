@@ -5,6 +5,21 @@ import "./styles/pagestyles.css";
 import "./styles/Profile.css";
 
 export default function Profile() {
+  const AVATAR_CHOICES = [
+    "avatars/avatar1.png",
+    "avatars/avatar2.png",
+    "avatars/avatar3.png",
+    "avatars/avatar4.png",
+    "avatars/avatar5.png",
+  ];
+
+  const resolveAvatarPath = (name) => {
+    if (!name) return null;
+    const clean = String(name).replace(/^\//, "");
+    if (/^https?:\/\//i.test(clean) || clean.startsWith("data:")) return clean;
+    return `${process.env.PUBLIC_URL || ""}/${clean}`;
+  };
+
   const [favorites, setFavorites] = useState([]);
   const [loading, setLoading] = useState(true);
   const [account, setAccount] = useState(null);
@@ -13,6 +28,8 @@ export default function Profile() {
   const [showModal, setShowModal] = useState(false);
   const [modalContent, setModalContent] = useState({ title: "", message: "" });
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
+  const [showAvatarModal, setShowAvatarModal] = useState(false);
+  const [savingAvatar, setSavingAvatar] = useState(false);
 
   useEffect(() => {
     try {
@@ -169,6 +186,44 @@ export default function Profile() {
     }
   }
 
+  async function handleAvatarSelect(avatar) {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setModalContent({ title: "Login required", message: "Please log in to change your avatar." });
+      setShowModal(true);
+      setShowAvatarModal(false);
+      return;
+    }
+
+    try {
+      setSavingAvatar(true);
+      const res = await fetch(`${API}/auth/avatar`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ avatar }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || "Failed to update avatar");
+
+      const updatedAccount = data?.account || { ...(account || {}), avatar };
+      setAccount(updatedAccount);
+      localStorage.setItem("account", JSON.stringify(updatedAccount));
+      window.dispatchEvent(new Event('account-updated'));
+
+      setModalContent({ title: "Avatar Updated", message: "Your avatar has been changed." });
+      setShowModal(true);
+      setShowAvatarModal(false);
+    } catch (err) {
+      setModalContent({ title: "Avatar Update Failed", message: err.message });
+      setShowModal(true);
+    } finally {
+      setSavingAvatar(false);
+    }
+  }
+
+  const avatarUrl = resolveAvatarPath(account?.avatar);
+  const avatarInitial = account && account.username ? account.username.charAt(0).toUpperCase() : "K";
+
   return (
     <div>
       <Header />
@@ -179,7 +234,11 @@ export default function Profile() {
           <div className="profile-sidebar">
             <div className="profile-avatar-wrapper">
               <div className="profile-avatar small">
-                {account && account.username ? account.username.charAt(0).toUpperCase() : 'K'}
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt="Avatar" className="profile-avatar-img" />
+                ) : (
+                  avatarInitial
+                )}
               </div>
 
               <div className="profile-userinfo">
@@ -187,6 +246,8 @@ export default function Profile() {
                 <div className="profile-email">{account?.email || ''}</div>
               </div>
             </div>
+
+            <button className="btn profile-btn" onClick={() => setShowAvatarModal(true)}>Change Avatar</button>
 
             <Link to="/owngroups" className="link-unstyled">
               <button className="btn profile-btn">My Groups</button>
@@ -255,6 +316,36 @@ export default function Profile() {
         <div className="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" onClick={(e) => e.stopPropagation()}>
           <h3 id="modal-title">{modalContent.title}</h3>
           <p>{modalContent.message}</p>
+        </div>
+      </div>
+    )}
+    {showAvatarModal && (
+      <div className="modal-overlay" onClick={() => setShowAvatarModal(false)}>
+        <div className="modal" role="dialog" aria-modal="true" aria-labelledby="avatar-modal-title" onClick={(e) => e.stopPropagation()}>
+          <h3 id="avatar-modal-title">Choose an avatar</h3>
+          <div className="avatar-grid">
+            {AVATAR_CHOICES.map((choice) => {
+              const src = resolveAvatarPath(choice);
+              const isSelected = account?.avatar === choice;
+              return (
+                <button
+                  key={choice}
+                  className={`avatar-choice${isSelected ? " selected" : ""}`}
+                  onClick={() => handleAvatarSelect(choice)}
+                  disabled={savingAvatar}
+                >
+                  {src ? (
+                    <img src={src} alt={`Avatar ${choice}`} className="avatar-choice-img" />
+                  ) : (
+                    <span className="avatar-choice-fallback">{choice}</span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+          <div className="modal-actions">
+            <button className="btn" onClick={() => setShowAvatarModal(false)} disabled={savingAvatar}>Close</button>
+          </div>
         </div>
       </div>
     )}
