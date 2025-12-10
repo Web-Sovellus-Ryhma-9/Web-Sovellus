@@ -20,7 +20,7 @@ export async function getReviews(req, res, next) {
     const movie_id = req.params.id;
     if (!movie_id) return res.status(400).json({ error: "Missing movie id" });
     const rows = await getReviewsByMovie(movie_id);
-    res.json(rows.map(r => ({ id: r.review_id, movie_id: r.movie_id, account_id: r.account_id, username: r.username, rating: r.rating, comment: r.comment, created_at: r.created_at })));
+    res.json(rows.map(r => ({ id: r.review_id, movie_id: r.movie_id, account_id: r.account_id, username: r.username, rating: r.rating, comment: r.comment, created_at: r.created_at, avatar: r.avatar })));
   } catch (err) {
     console.error('Error in getReviews:', err);
     next(err);

@@ -9,7 +9,7 @@
 /* Group description under title */
 .group-description {
   margin-top: 6px;
-  color: #444;
+  color: #e5e5e5;
 }
 
 .member-list {
@@ -26,23 +26,25 @@
   align-items: center;
   gap: 8px;
   padding: 6px 0;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid #3a3f44;
 }
 
 .member-avatar {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: #ddd;
+  background: #2b2f33;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 14px;
-  color: #666;
+  color: #fff;
+  overflow: hidden;
 }
 
 .member-name {
   font-weight: 500;
+  color: #fff;
 }
 
 /* spacing above members section */
@@ -93,6 +95,7 @@
 /* Join requests */
 .requests-header {
   margin: 0 0 0.5rem;
+  color: #fff;
 }
 
 .request-list {
@@ -104,19 +107,52 @@
 }
 
 .request-item {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
   align-items: center;
-  justify-content: space-between;
-  padding: 4px 8px;
-  border: 1px solid #eee;
-  border-radius: 6px;
-  background: #d4d4d4;
-  border-color: #e5e7eb;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid #3a3f44;
+  border-radius: 8px;
+  background: linear-gradient(90deg, #222 0%, #2b2f33 100%);
+  color: #fff;
   font-size: 14px;
 }
 
+.request-avatar,
+.member-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #3a3f44;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.request-avatar-img,
+.member-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.request-avatar-fallback,
+.member-avatar-fallback {
+  font-weight: 700;
+  color: #fff;
+}
+
 .request-user {
-  font-weight: 500;
+  font-weight: 600;
+  color: #fff;
+}
+
+.member-role-label {
+  color: #ddd;
+  font-size: 13px;
 }
 
 .request-actions {
@@ -125,7 +161,7 @@
 }
 
 .muted {
-  color: #666;
+  color: #ccc;
 }
 
 .requests-section .btn {
@@ -142,6 +178,17 @@
   .group-actions {
     width: 100%;
     flex: 0 0 auto;
+  }
+
+  .request-item {
+    grid-template-columns: auto 1fr;
+    grid-template-rows: auto auto;
+    align-items: start;
+  }
+
+  .request-actions {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
   }
 }
 
