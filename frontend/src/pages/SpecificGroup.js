@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Header from "../components/Header";
 import "./styles/pagestyles.css";
+import "./styles/SpecificGroup.css";
 import { Link, useParams, useNavigate } from "react-router-dom";
 
 export default function SpecificGroup() {
@@ -162,26 +163,35 @@ export default function SpecificGroup() {
       <Header />
       <div className="page-container group-page">
         <h2 className="group-title">{groupName}</h2>
-        {groupDescription ? <p className="group-description" style={{ marginTop: 6, color: '#444' }}>{groupDescription}</p> : null}
-
+        {groupDescription ? (
+          <p className="group-description">{groupDescription}</p>
+        ) : null}
         {/* Movies section */}
         <div className="group-movies-section">
           <label className="section-label">Group Movies</label>
           <div id="group-movies-grid" className="group-movie-grid">
             {movies.length === 0 ? (
-              <div style={{ color: '#666' }}>No movies yet.</div>
+              <div className="group-empty-text">No movies yet.</div>
             ) : (
               movies.map(m => (
-                <div key={m.id} className="group-movie-item" style={{ display: 'flex', flexDirection: 'column', alignItems: 'stretch' }}>
+                <div key={m.id} className="group-movie-item">
                   <Link to={`/${m.mediaType || m.media_type || 'movie'}/${m.id}`} className="group-movie-link">
                     <div className="group-movie-card">
                       <div className="group-movie-image">
-                        {m.image ? <img src={m.image} alt={m.title} /> : <div className="group-movie-placeholder">Image</div>}
+                        {m.image ? (
+                          <img
+                            className="group-movie-poster"
+                            src={m.image}
+                            alt={m.title}
+                          />
+                        ) : (
+                          <div className="group-movie-placeholder">No image</div>
+                        )}
                       </div>
                       <div className="group-movie-name">{m.title}</div>
                     </div>
                   </Link>
-                  <div style={{ marginTop: 6, display: 'flex', justifyContent: 'center' }}>
+                  <div className="group-movie-actions">
                     <button
                       className="btn danger"
                       onClick={async (e) => {
@@ -216,7 +226,7 @@ export default function SpecificGroup() {
                         }
                       }}
                     >
-                      Delete
+                      Remove
                     </button>
                   </div>
                 </div>
@@ -237,7 +247,15 @@ export default function SpecificGroup() {
                   <li key={m.member_id ?? m.account_id} className="member-item">
                     <div className="member-avatar">👤</div>
                     <span className="member-name">{m.username || m.account_id}</span>
-                    <span style={{ marginLeft: 8, color: '#666' }}>{m.role_status === 1 ? 'Owner' : (m.role_status === 2 ? 'Member' : m.role_status === 3 ? 'Pending' : '')}</span>
+                    <span className="member-role-label">
+                      {m.role_status === 1
+                        ? 'Owner'
+                        : (m.role_status === 2
+                          ? 'Member'
+                          : m.role_status === 3
+                            ? 'Pending'
+                            : '')}
+                    </span>
                   </li>
                 ))
               )}

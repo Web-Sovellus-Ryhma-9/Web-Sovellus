@@ -1,0 +1,55 @@
+/* Shared favorites page */
+.shared-favorites-page {
+  /* currently same as .page-container; kept for future tweaks if needed */
+}
+
+/* Grid of shared items */
+.shared-items-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+/* Individual shared item card */
+.shared-item-card {
+  border: 1px solid #eee;
+  padding: 8px;
+  display: flex;
+  gap: 12px;
+}
+
+/* Poster column */
+.shared-item-image-wrapper {
+  width: 92px;
+  height: 138px;
+  flex: 0 0 auto;
+}
+
+.shared-item-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.shared-item-placeholder {
+  width: 100%;
+  height: 100%;
+  background: #eee;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #888;
+}
+
+/* Text/content */
+.shared-item-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.shared-item-link {
+  text-decoration: none;
+  color: #222;
+  font-weight: 600;
+}

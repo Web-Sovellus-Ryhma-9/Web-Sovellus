@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import Header from "../components/Header";
+import "./styles/pagestyles.css";
+import "./styles/SpecificMovie.css";
 
 const API_BASE = process.env.REACT_APP_API_URL || "";
 
@@ -8,16 +10,17 @@ function Stars({ value, onChange, editable = false }) {
   const stars = [];
   for (let i = 1; i <= 5; i++) {
     const filled = i <= value;
-    const commonStyle = {
-      color: filled ? "#f5c518" : "#ccc",
-      fontSize: 22,
-      cursor: editable ? "pointer" : "default",
-      marginRight: 2,
-    };
+    const className = [
+      "star",
+      filled ? "star-filled" : "",
+      editable ? "star-editable" : "",
+    ]
+      .filter(Boolean)
+      .join(" ");
     stars.push(
       <span
         key={i}
-        style={commonStyle}
+        className={className}
         onClick={editable && onChange ? () => onChange(i) : undefined}
       >
         ★
@@ -413,14 +416,14 @@ export default function SpecificMovie() {
                 {isFavorite() ? "Remove from favorites" : "Add to favorites"}
               </button>
               {!loggedIn && !isFavorite() && (
-                <div style={{ marginTop: 6 }}>
+                <div className="login-hint">
                   <a href="/login">Log in to add to favorites</a>
                 </div>
               )}
             </div>
 
             <div className="movie-actions">
-              <div style={{ marginBottom: 6 }}>Add to group</div>
+              <div className="movie-add-to-group-label">Add to group</div>
               <select value={selectedGroup} onChange={e => setSelectedGroup(e.target.value)} className="group-select">
                 <option value="">-- Select group --</option>
                 {localGroups.map(g => (
@@ -430,7 +433,11 @@ export default function SpecificMovie() {
                   <option key={`srv-${g.group_id || g.id}`} value={g.group_id || g.id}>{g.name || g.group_name || g.groupName || `Group ${g.group_id || g.id}`}</option>
                 ))}
               </select>
-              <button onClick={joinSelectedGroup} disabled={joining} className="btn" style={{ marginTop: 8 }}>
+              <button
+                onClick={joinSelectedGroup}
+                disabled={joining}
+                className="btn movie-add-to-group-button"
+              >
                 Add to group
               </button>
             </div>
@@ -438,32 +445,34 @@ export default function SpecificMovie() {
 
           <div className="movie-main">
             <h2 className="movie-title">{movie.title}</h2>
-            <div className="movie-meta" style={{ color: '#666', marginBottom: 8 }}>
+            <div className="movie-meta">
               {(movie.tmdb?.release_date || movie.tmdb?.first_air_date) && (
                 <span>Release: {new Date(movie.tmdb.release_date || movie.tmdb.first_air_date).toLocaleDateString()}</span>
               )}
               {(movie.tmdb?.runtime != null || (movie.tmdb?.episode_run_time && movie.tmdb.episode_run_time.length > 0)) && (
-                <span style={{ marginLeft: 12 }}>Duration: {formatRuntime(movie.tmdb.runtime || (movie.tmdb.episode_run_time && movie.tmdb.episode_run_time[0]) || 0)}</span>
+                <span className="rating-count-inline">
+                  Duration: {formatRuntime(movie.tmdb.runtime || (movie.tmdb.episode_run_time && movie.tmdb.episode_run_time[0]) || 0)}
+                </span>
               )}
             </div>
             <div className="avg-rating">
               <Stars value={Math.round(averageRating())} />
-              <span style={{ marginLeft: 8 }}>
+              <span className="rating-value-inline">
                 {averageRating()} / 5
-                <span style={{ marginLeft: 16 }}>
+                <span className="rating-count-inline">
                   ({reviews.length} review{reviews.length === 1 ? '' : 's'})
                 </span>
               </span>
             </div>
             {movie.tmdb?.genres && movie.tmdb.genres.length > 0 && (
-              <div style={{ marginTop: 6 }}>Genres: {movie.tmdb.genres.map(g => g.name).join(', ')}</div>
+              <div className="movie-genres">Genres: {movie.tmdb.genres.map(g => g.name).join(', ')}</div>
             )}
             <p className="movie-description">{movie.description}</p>
 
             {credits && credits.length > 0 && (
-              <div style={{ marginTop: 12 }}>
+              <div className="movie-cast-section">
                 <h3>Main cast</h3>
-                <div className="cast-names" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                <div className="cast-names">
                   {credits.slice(0, 6).map(actor => {
                     const key = actor.cast_id || actor.credit_id || actor.id;
                     const personId = actor.id;
@@ -483,10 +492,12 @@ export default function SpecificMovie() {
                         onClick={go}
                         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') go(); }}
                         title={`Find works by ${name}`}
-                        style={{ padding: '6px 10px', background: '#f5f5f5', borderRadius: 6, cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}
+                        className="cast-pill"
                       >
-                        <div style={{ fontWeight: 600 }}>{name}</div>
-                        {actor.character && <div style={{ fontSize: 12, color: '#666' }}>{actor.character}</div>}
+                        <div className="cast-pill-name">{name}</div>
+                        {actor.character && (
+                          <div className="cast-pill-character">{actor.character}</div>
+                        )}
                       </div>
                     );
                   })}
@@ -500,13 +511,13 @@ export default function SpecificMovie() {
             <form onSubmit={submitReview} className="review-form">
               <div>
                 <label>{userReview ? "Edit rating:" : "Rating:"}</label>
-                <div style={{ marginTop: 4 }}>
+                <div className="rating-row">
                   <Stars
                     value={rating}
                     editable={true}
                     onChange={(val) => setRating(val)}
                   />
-                  <span style={{ marginLeft: 8 }}>{rating} / 5</span>
+                  <span className="rating-value-inline">{rating} / 5</span>
                 </div>
               </div>
 
@@ -526,16 +537,16 @@ export default function SpecificMovie() {
               </div>
             </form>
 
-            <h3 className="" style={{ marginTop: 24 }}>Other users' reviews</h3>
+            <h3 className="reviews-title">Other users' reviews</h3>
             {reviews.length === 0 ? (
               <p>No reviews yet.</p>
             ) : (
               <div className="reviews-list">
                     {reviews.map(r => (
                       <div key={r.id} className="review-item">
-                        <div className="review-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <div style={{ fontWeight: 600 }}>{r.user || "Anonyymi"}</div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <div className="review-header">
+                          <div className="review-user">{r.user || "Anonyymi"}</div>
+                          <div className="review-meta">
                             <Stars value={Number(r.rating) || 0} />
                             {loggedIn && account && r.account_id && Number(r.account_id) === Number(account.account_id) && (
                               <button className="btn" onClick={async () => {

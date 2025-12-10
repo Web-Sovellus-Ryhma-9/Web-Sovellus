@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import Header from "../components/Header";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import "./styles/pagestyles.css";
+import "./styles/Search.css";
 
 export default function Search() {
   const [results, setResults] = useState([]);
@@ -170,7 +171,7 @@ export default function Search() {
       <div className="page-container">
         <h2>Search</h2>
 
-        <div style={{ marginBottom: 12, display: 'flex', gap: 12, alignItems: 'center' }}>
+        <div className="search-filters">
           <label>Release year from: 
             <input
               type="text"
@@ -179,7 +180,7 @@ export default function Search() {
               maxLength={4}
               value={yearFrom}
               onChange={(e) => setYearFrom(e.target.value.replace(/\D/g, '').slice(0,4))}
-              style={{ width: 100 }}
+              className="year-input"
             />
           </label>
           <label>Release year to: 
@@ -190,7 +191,7 @@ export default function Search() {
               maxLength={4}
               value={yearTo}
               onChange={(e) => setYearTo(e.target.value.replace(/\D/g, '').slice(0,4))}
-              style={{ width: 100 }}
+              className="year-input"
             />
           </label>
           <label>Genre:
@@ -204,7 +205,7 @@ export default function Search() {
         </div>
 
         {loading && <p>Loading...</p>}
-        {error && <p style={{ color: "red" }}>Error: {error}</p>}
+        {error && <p className="error-text">Error: {error}</p>}
 
         <div className="search-results">
           {results.length === 0 && !loading && <p>No results</p>}
@@ -214,10 +215,8 @@ export default function Search() {
               className="search-result"
               role="button"
               tabIndex={0}
-              style={{ cursor: 'pointer' }}
               onClick={() => navigate(m.media_type === 'tv' ? `/tv/${m.id}` : `/movie/${m.id}`)}
               onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') navigate(m.media_type === 'tv' ? `/tv/${m.id}` : `/movie/${m.id}`); }}
-            
             >
               {m.poster_path ? (
                 <img
@@ -229,19 +228,19 @@ export default function Search() {
                 <div className="result-placeholder" />
               )}
               <div className="result-info">
-                <h3 style={{ margin: 0 }}>{(m.title || m.name)} <small>({(m.release_date || m.first_air_date)?.slice(0,4)})</small></h3>
-                <p style={{ margin: "6px 0" }}>{m.overview?.slice(0,200) || m.overview}</p>
+                <h3>{(m.title || m.name)} <small>({(m.release_date || m.first_air_date)?.slice(0,4)})</small></h3>
+                <p>{m.overview?.slice(0,200) || m.overview}</p>
               </div>
             </div>
           ))}
         </div>
-        <div style={{ textAlign: 'center', marginTop: 12 }}>
+        <div className="load-more-container">
           {loading && <div>Loading more...</div>}
           {!loading && results.length > 0 && (totalPages === null || page < totalPages) && (
             <button className="load-more" onClick={loadMore}>Load more</button>
           )}
           {!loading && totalPages !== null && page >= totalPages && (
-            <div style={{ color: '#666', marginTop: 8 }}>No more results</div>
+            <div className="no-more-results">No more results</div>
           )}
         </div>
       </div>

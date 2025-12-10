@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Header from "../components/Header";
+import "./styles/pagestyles.css";
+import "./styles/Profile.css";
 
 export default function Profile() {
   const [favorites, setFavorites] = useState([]);
@@ -186,9 +188,7 @@ export default function Profile() {
               </div>
             </div>
 
-
-
-            <Link to="/owngroups" style={{ textDecoration: "none" }}>
+            <Link to="/owngroups" className="link-unstyled">
               <button className="btn profile-btn">My Groups</button>
             </Link>
 
@@ -200,7 +200,7 @@ export default function Profile() {
                   const shareUrl = `${window.location.origin}/sharedfavorite?list=${encodeURIComponent(listId)}`;
                   navigator.clipboard.writeText(shareUrl).then(() => { setModalContent({ title: 'Copied', message: 'Shared link copied to clipboard: ' + shareUrl }); setShowModal(true); });
                 } else {
-                  setModalContent({ title: 'No Favorites', message: 'Create favorites to share a list.' });
+                  setModalContent({ title: 'No Favorites', message: 'Add favorites to share a list.' });
                   setShowModal(true);
                 }
               }}
@@ -210,7 +210,7 @@ export default function Profile() {
             <button onClick={deleteAccount} className="btn profile-btn danger">Delete Account</button>
           </div>
 
-          <div style={{ flex: 1 }}>
+            <div className="profile-main">
             <h3>My Favorites</h3>
             {/* Copy-link moved to sidebar; no inline copy button needed here */}
             {loading ? (
@@ -220,16 +220,25 @@ export default function Profile() {
             ) : (
               <div className="favorites-list">
                   {favorites.map(fav => (
-                    <div key={fav.id} className="favorite-item" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                      <div style={{ width: 92, height: 138, flex: '0 0 auto' }}>
+                    <div key={fav.id} className="favorite-item">
+                      <div className="favorite-image-wrapper">
                         {fav.image ? (
-                          <img src={fav.image} alt={fav.title || 'Poster'} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          <img
+                            src={fav.image}
+                            alt={fav.title || 'Poster'}
+                            className="favorite-image"
+                          />
                         ) : (
-                          <div style={{ width: '100%', height: '100%', background: '#eee', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#888' }}>No image</div>
+                          <div className="favorite-placeholder">No image</div>
                         )}
                       </div>
                       <div style={{ flex: 1 }}>
-                        <Link to={`/${fav.mediaType || 'movie'}/${fav.id}`} style={{ textDecoration: 'none', color: '#222', fontWeight: 600 }}>{fav.title || fav.name || 'Unnamed'}</Link>
+                        <Link
+                          to={`/${fav.mediaType || 'movie'}/${fav.id}`}
+                          className="favorite-link"
+                        >
+                          {fav.title || fav.name || 'Unnamed'}
+                        </Link>
                       </div>
                       <div>
                         <button onClick={() => removeFavorite(fav.id)} className="btn">Delete</button>

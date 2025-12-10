@@ -1,0 +1,202 @@
+/* SpecificMovie page */
+.movie-container {
+  max-width: 1000px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+.movie-grid {
+  display: flex;
+  gap: 24px;
+}
+
+.movie-sidebar {
+  width: 260px;
+}
+
+.movie-poster {
+  width: 220px;
+  height: 220px;
+  border: 2px solid #ccc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Placeholder inside the specific movie poster box */
+.movie-poster .movie-placeholder {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: auto;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.movie-actions {
+  margin-top: 12px;
+}
+
+.movie-actions .btn {
+  margin-right: 8px;
+}
+
+.group-select {
+  width: 100%;
+  padding: 6px;
+}
+
+.movie-main {
+  flex: 1;
+}
+
+.movie-title {
+  margin-top: 0;
+}
+
+/* meta row under title */
+.movie-meta {
+  color: #666;
+  margin-bottom: 8px;
+}
+
+.avg-rating {
+  margin-bottom: 12px;
+}
+
+.movie-description {
+  color: #333;
+}
+
+.specificmovie-poster {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+/* genres row */
+.movie-genres {
+  margin-top: 6px;
+}
+
+/* cast section */
+.movie-cast-section {
+  margin-top: 12px;
+}
+
+.cast-names {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.cast-pill {
+  padding: 6px 10px;
+  background: #f5f5f5;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.cast-pill-name {
+  font-weight: 600;
+}
+
+.cast-pill-character {
+  font-size: 12px;
+  color: #666;
+}
+
+/* Stars */
+.star {
+  font-size: 22px;
+  margin-right: 2px;
+  color: #ccc;
+  cursor: default;
+}
+
+.star-filled {
+  color: #f5c518;
+}
+
+.star-editable {
+  cursor: pointer;
+}
+
+/* small helpers */
+.login-hint {
+  margin-top: 6px;
+}
+
+.movie-add-to-group-label {
+  margin-bottom: 6px;
+}
+
+.movie-add-to-group-button {
+  margin-top: 8px;
+}
+
+.rating-row {
+  margin-top: 4px;
+}
+
+.rating-value-inline {
+  margin-left: 8px;
+}
+
+.rating-count-inline {
+  margin-left: 16px;
+}
+
+.reviews-title {
+  margin-top: 24px;
+}
+
+/* Reviews */
+.review-form {
+  display: grid;
+  gap: 8px;
+}
+
+.reviews-list {
+  border: 1px solid #ddd;
+}
+
+.review-item {
+  padding: 12px;
+  border-bottom: 1px solid #eee;
+}
+
+.review-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.review-user {
+  font-weight: 600;
+}
+
+.review-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.review-comment {
+  margin-top: 8px;
+}
+
+.review-date {
+  margin-top: 6px;
+  color: #888;
+  font-size: 12px;
+}

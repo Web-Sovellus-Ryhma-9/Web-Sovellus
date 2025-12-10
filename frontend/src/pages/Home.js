@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import "./styles/pagestyles.css";
+import "./styles/Home.css";
 
 const TMDB_IMAGE = "https://image.tmdb.org/t/p/w300";
 
@@ -101,24 +102,19 @@ export default function Home() {
       wrapper.style.cursor = "default";
     };
 
-    // Map vertical wheel to horizontal scroll so ordinary mouse wheel scrolls the track
     const onWheel = (e) => {
       // Only intercept wheel when paused and there is horizontal overflow
       if (!isPaused) return;
-      // If there's no horizontal overflow, don't intercept
       if (wrapper.scrollWidth <= wrapper.clientWidth) return;
       // Prevent page vertical scroll while over the carousel
       e.preventDefault();
-      // deltaY is the vertical scroll amount; add it to scrollLeft to move horizontally
       const delta = e.deltaY || e.deltaX;
-      // Apply a multiplier for a comfortable speed
       const factor = 1.2;
       wrapper.scrollLeft += delta * factor;
     };
 
     wrapper.addEventListener("mouseenter", onMouseEnter);
     wrapper.addEventListener("mouseleave", onMouseLeave);
-    // wheel listener must be non-passive to allow preventDefault
     wrapper.addEventListener("wheel", onWheel, { passive: false });
     // touch: pause while user is touching the screen so they can swipe to scroll
     const onTouchStart = () => {
@@ -153,21 +149,22 @@ export default function Home() {
         {loading && <p>Loading movies...</p>}
         {error && <p style={{ color: "red" }}>Error: {error}</p>}
 
+        {loading && <p>Loading movies...</p>}
+        {error && <p className="error-text">Error: {error}</p>}
+
         {!loading && !error && (
           <div
             className="carousel-wrapper"
             ref={wrapperRef}
-            style={{ overflow: "hidden" }}
           >
-            {/* duplicate the track to create seamless loop; we will advance wrapper.scrollLeft via RAF */}
-            <div className="scroll-track" ref={trackRef} style={{ display: "flex" }}>
+            {}
+            <div className="scroll-track" ref={trackRef}>
               {[0, 1].map((rep) => (
-                <div key={rep} style={{ display: "flex" }}>
+                <div key={rep} className="carousel-copy">
                   {movies.map((m) => (
                     <div
                       key={`${rep}-${m.id}`}
                       className="movie-card"
-                      style={{ marginRight: 16, cursor: 'pointer' }}
                       role="button"
                       tabIndex={0}
                       onClick={() => navigate(`/movie/${m.id}`)}
@@ -178,9 +175,9 @@ export default function Home() {
                       ) : (
                         <div className="movie-placeholder">{m.title}</div>
                       )}
-                      <div style={{ marginTop: 8 }}>
+                      <div className="movie-info">
                         <strong>{m.title}</strong>
-                        <div style={{ fontSize: 12, color: "#666" }}>{"Premiere: "}{m.release_date}</div>
+                        <div className="movie-premiere">{"Premiere: "}{m.release_date}</div>
                       </div>
                     </div>
                   ))}
