@@ -129,8 +129,9 @@ a:hover,
 }
 
 .btn.ghost {
+  background: #ff9800;
   border-color: rgba(255, 255, 255, 0.25);
-  color: var(--text-color);
+  color: #000;
 }
 
 /* status buttons keep semantic colors but tuned for dark bg */
