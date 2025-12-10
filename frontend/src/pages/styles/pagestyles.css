@@ -16,11 +16,37 @@
 body {
   margin: 0;
   font-family: var(--font-family-base);
-  background: radial-gradient(circle at top, #111 0, #000 55%, #000 100%);
+  background: radial-gradient(circle at top, #111 0, #000 55%, #000 100%),
+              url('../../assets/logo/PopcornHub_logo.png');
   background-repeat: no-repeat;  /* prevent tiling */
   background-attachment: fixed;  /* keep it anchored while scrolling */
+  background-position: center center, center center;
+  background-size: auto, 800px;
   background-color: #000;        /* fallback fill below gradient */
   color: var(--text-color);
+  position: relative;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 800px;
+  height: 800px;
+  background-image: url('../../assets/logo/PopcornHub_logo.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  opacity: 0.05;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.page-container {
+  position: relative;
+  z-index: 1;
 }
 /* Main page card */
 .page-container {
