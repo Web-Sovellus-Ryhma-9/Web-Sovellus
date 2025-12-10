@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import Header from "../components/Header";
 import "./styles/pagestyles.css";
-
+import "./styles/Auth.css";
 
 export default function Login() {
   const [formData, setFormData] = useState({ username: "", password: "" });
@@ -37,11 +37,12 @@ export default function Login() {
   return (
     <div>
       <Header />
-      <div className="auth-page-container">        
-        <h2>Login</h2>
+      <div className="page-container auth-page-container">
+        <h2 className="auth-title">Login</h2>
         <form className="login-form" onSubmit={handleSubmit}>
           <div>
             <input
+              className="auth-input"
               type="text"
               id="username"
               name="username"
@@ -53,6 +54,7 @@ export default function Login() {
           </div>
           <div>
             <input
+              className="auth-input"
               type="password"
               id="password"
               name="password"
@@ -62,12 +64,28 @@ export default function Login() {
               required
             />
           </div>
-          <span className="nav-text-button" onClick={() => (window.location.href = "/Register")}>Not registered? Click here!</span>
-          <button type="Submit">Login</button>
+          <span
+            className="nav-text-button"
+            onClick={() => (window.location.href = "/Register")}
+          >
+            Not registered? Click here!
+          </span>
+          <button type="submit" className="btn primary auth-submit">
+            Login
+          </button>
         </form>
         {showModal && (
-          <div className="modal-overlay" onClick={() => setShowModal(false)}>
-            <div className="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="modal-overlay"
+            onClick={() => setShowModal(false)}
+          >
+            <div
+              className="modal"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="modal-title"
+              onClick={(e) => e.stopPropagation()}
+            >
               <h3 id="modal-title">{modalContent.title}</h3>
               <p>{modalContent.message}</p>
             </div>

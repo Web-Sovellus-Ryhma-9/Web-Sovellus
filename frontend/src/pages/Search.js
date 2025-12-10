@@ -179,7 +179,9 @@ export default function Search() {
               pattern="[0-9]*"
               maxLength={4}
               value={yearFrom}
-              onChange={(e) => setYearFrom(e.target.value.replace(/\D/g, '').slice(0,4))}
+              onChange={(e) =>
+                setYearFrom(e.target.value.replace(/\D/g, "").slice(0, 4))
+              }
               className="year-input"
             />
           </label>
@@ -190,15 +192,22 @@ export default function Search() {
               pattern="[0-9]*"
               maxLength={4}
               value={yearTo}
-              onChange={(e) => setYearTo(e.target.value.replace(/\D/g, '').slice(0,4))}
+              onChange={(e) =>
+                setYearTo(e.target.value.replace(/\D/g, "").slice(0, 4))
+              }
               className="year-input"
             />
           </label>
           <label>Genre:
-            <select value={genre} onChange={(e) => setGenre(e.target.value)}>
+            <select
+              value={genre}
+              onChange={(e) => setGenre(e.target.value)}
+            >
               <option value="">Any</option>
               {genresList.map((g) => (
-                <option key={g.id} value={g.id}>{g.name}</option>
+                <option key={g.id} value={g.id}>
+                  {g.name}
+                </option>
               ))}
             </select>
           </label>
@@ -237,7 +246,12 @@ export default function Search() {
         <div className="load-more-container">
           {loading && <div>Loading more...</div>}
           {!loading && results.length > 0 && (totalPages === null || page < totalPages) && (
-            <button className="load-more" onClick={loadMore}>Load more</button>
+            <button
+              className="btn primary load-more"
+              onClick={loadMore}
+            >
+              Load more
+            </button>
           )}
           {!loading && totalPages !== null && page >= totalPages && (
             <div className="no-more-results">No more results</div>

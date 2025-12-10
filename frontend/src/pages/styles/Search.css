@@ -18,8 +18,9 @@
 .result-placeholder {
   width: 100px;
   height: 150px;
-  background: #ddd;
+  background: #1f1f1f;        /* dark theme */
   margin-right: 12px;
+  border-radius: 8px;
 }
 
 .result-info h3 {
@@ -28,33 +29,59 @@
 
 .result-info p {
   margin: 6px 0;
-  color: #444;
+  color: var(--text-muted);
 }
 
 /* Filters row above results */
 .search-filters {
-  margin-bottom: 12px;
+  margin-bottom: 16px;
   display: flex;
   gap: 12px;
   align-items: center;
   flex-wrap: wrap;
+  font-size: 0.9rem;
+}
+
+.search-filters label {
+  color: var(--text-color);
+}
+
+/* Themed inputs */
+.year-input,
+.search-filters select {
+  padding: 8px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border-color);
+  background: #111;
+  color: var(--text-color);
+  font-size: 0.9rem;
+  font-family: var(--font-family-base);
+  outline: none;
+  box-sizing: border-box;
 }
 
 .year-input {
   width: 100px;
 }
 
+.year-input:focus,
+.search-filters select:focus {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 1px rgba(255, 152, 0, 0.65);
+}
+
 /* Load more footer */
 .load-more-container {
   text-align: center;
-  margin-top: 12px;
+  margin-top: 20px;
 }
 
 .load-more {
-  padding: 8px 12px;
+  /* visual is handled by .btn .primary; keep only extra spacing here */
+  margin-top: 4px;
 }
 
 .no-more-results {
-  color: #666;
+  color: var(--text-muted);
   margin-top: 8px;
 }
