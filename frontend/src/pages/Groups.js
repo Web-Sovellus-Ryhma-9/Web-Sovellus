@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Header from "../components/Header";
 import "./styles/pagestyles.css";
+import "./styles/Groups.css";
 
 export default function Groups() {
   const [groups, setGroups] = useState([]);
@@ -247,13 +248,13 @@ export default function Groups() {
       <Header />
       <div className="page-container">
         <div className="page-header">
-          <h2 style={{ margin: 0 }}>Explore Groups</h2>
+          <h2 className="page-title">Explore Groups</h2>
           <div className="header-actions">
-            <Link to="/owngroups" style={{ textDecoration: "none" }}>
-              <button className="btn ghost">My Groups</button>
+            <Link to="/owngroups" className="link-unstyled">
+              <button className="btn ghost btn-large">My Groups</button>
             </Link>
-            <Link to="/creategroup" style={{ textDecoration: "none" }}>
-              <button className="btn primary">Create Group</button>
+            <Link to="/creategroup" className="link-unstyled">
+              <button className="btn primary btn-large">Create Group</button>
             </Link>
           </div>
         </div>
@@ -275,40 +276,46 @@ export default function Groups() {
                     {group.image ? (
                       <img src={group.image} alt={group.name} />
                     ) : (
-                      <div style={{ color: "#666", fontSize: 12, textAlign: "center" }}>Image</div>
+                      <div className="group-image-placeholder">Image</div>
                     )}
                   </div>
 
                   <div className="group-info">
-                    <Link to={`/group/${gid}`} style={{ textDecoration: "none", color: "inherit" }}>
-                      <h3 style={{ margin: 0 }}>{group.name}</h3>
+                    <Link
+                      to={`/group/${gid}`}
+                      className="link-unstyled"
+                    >
+                      <h3>{group.name}</h3>
                     </Link>
                     {group.owner_username ? (
-                      <p style={{ margin: "6px 0 0", color: "#666", fontSize: 13 }}>Owner: {group.owner_username}</p>
+                      <p className="group-owner-text">
+                        Owner: {group.owner_username}
+                      </p>
                     ) : null}
-                    <p style={{ margin: "6px 0 0", color: "#444" }}>{group.description}</p>
+                    <p className="group-description-text">{group.description}</p>
                   </div>
 
                   <div className="group-action">
                     {role === 1 ? (
-                      <Link to={`/handlegroup/${gid}`} style={{ textDecoration: 'none' }}>
-                        <button className="btn" style={{ padding: "8px 16px" }}>Manage</button>
+                      <Link to={`/handlegroup/${gid}`} className="link-unstyled">
+                        <button className="btn btn-large">Manage</button>
                       </Link>
                     ) : role === 2 ? (
-                      <button className="btn" disabled style={{ padding: "8px 16px", background: '#ddd' }}>Member</button>
+                      <button className="btn btn-large" disabled>
+                        Member
+                      </button>
                     ) : !loggedIn ? (
-                      <Link to="/login" style={{ textDecoration: 'none' }}>
-                        <button className="btn" style={{ padding: "8px 16px" }}>Login to Join</button>
+                      <Link to="/login" className="link-unstyled">
+                        <button className="btn btn-large">Login to Join</button>
                       </Link>
                     ) : pending ? (
-                      <button className="btn" disabled style={{ background: "#ddd", padding: "8px 16px" }}>
+                      <button className="btn btn-large" disabled>
                         Pending request
                       </button>
                     ) : (
                       <button
                         onClick={() => joinGroup(gid)}
-                        className="btn"
-                        style={{ padding: "8px 16px" }}
+                        className="btn btn-large"
                       >
                         Request to Join
                       </button>

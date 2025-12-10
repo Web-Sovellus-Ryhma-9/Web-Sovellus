@@ -1,0 +1,152 @@
+/* Members + actions */
+.members-actions-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+/* Group description under title */
+.group-description {
+  margin-top: 6px;
+  color: #444;
+}
+
+.member-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  flex: 1 1 auto;
+  display: grid;
+  gap: 8px;
+}
+
+.member-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.member-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #ddd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  color: #666;
+}
+
+.member-name {
+  font-weight: 500;
+}
+
+/* spacing above members section */
+.members-section {
+  margin-top: 24px;
+}
+
+.group-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 0 0 200px;
+  align-items: stretch;
+}
+
+.group-actions .btn {
+  width: 100%;
+}
+
+/* Remove member button */
+.member-remove-btn {
+  margin-left: 12px;
+}
+
+/* HandleGroup layout */
+.handle-group-layout {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 80px;
+}
+
+.handle-group-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.handle-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.handle-actions .btn {
+  width: 100%;
+}
+
+/* Join requests */
+.requests-header {
+  margin: 0 0 0.5rem;
+}
+
+.request-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.request-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 8px;
+  border: 1px solid #eee;
+  border-radius: 6px;
+  background: #d4d4d4;
+  border-color: #e5e7eb;
+  font-size: 14px;
+}
+
+.request-user {
+  font-weight: 500;
+}
+
+.request-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.muted {
+  color: #666;
+}
+
+.requests-section .btn {
+  padding: 6px 10px;
+  font-size: 13px;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .members-actions-row {
+    flex-direction: column;
+  }
+
+  .group-actions {
+    width: 100%;
+    flex: 0 0 auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .handle-group-layout {
+    grid-template-columns: 1fr;
+  }
+}

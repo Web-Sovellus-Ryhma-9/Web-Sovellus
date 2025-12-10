@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Header from "../components/Header";
 import "./styles/pagestyles.css";
+import "./styles/HandleGroup.css";
 import { useParams, useNavigate } from "react-router-dom";
 
 export default function HandleGroup() {
@@ -188,12 +189,13 @@ export default function HandleGroup() {
         <div className="handle-group-layout">
           <aside className="handle-group-sidebar">
             <h2 className="group-title">{groupName}</h2>
-            {groupDescription ? <p className="group-description" style={{ marginTop: 6, color: '#444' }}>{groupDescription}</p> : null}
+            {groupDescription ? (
+              <p className="group-description">{groupDescription}</p>
+            ) : null}
             <div className="handle-actions">
               <button
                 className="btn"
-                onClick={() => setShowDeleteConfirm(true)}
-              >
+                onClick={() => setShowDeleteConfirm(true)}>
                 Delete Group
               </button>
               <button className="btn" onClick={handleOpenRename}>
@@ -236,7 +238,8 @@ export default function HandleGroup() {
                 </ul>
               )}
             </div>
-            <div className="members-section" style={{ marginTop: 24 }}>
+
+            <div className="members-section">
               <h3 className="requests-header">Group Members</h3>
               {members.filter(m => m.role_status === 1 || m.role_status === 2).length === 0 ? (
                 <p className="muted">No members yet.</p>
@@ -245,11 +248,12 @@ export default function HandleGroup() {
                   {members.filter(m => m.role_status === 1 || m.role_status === 2).map((m) => (
                     <li key={m.member_id ?? m.account_id} className="request-item">
                       <span className="request-user">{m.username ?? m.account_id}</span>
-                      <span style={{ marginLeft: 8, color: "#666" }}>{m.role_status === 1 ? "Owner" : "Member"}</span>
+                      <span className="member-role-label">
+                        {m.role_status === 1 ? "Owner" : "Member"}
+                      </span>
                       {isOwner && m.role_status !== 1 && (
                         <button
-                          className="btn danger"
-                          style={{ marginLeft: 12 }}
+                          className="btn danger member-remove-btn"
                           onClick={async () => {
                             if (!confirm(`Remove ${m.username || m.account_id} from group?`)) return;
                             try {

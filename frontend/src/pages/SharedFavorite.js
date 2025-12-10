@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, Link } from "react-router-dom";
 import Header from "../components/Header";
+import "./styles/pagestyles.css";
+import "./styles/SharedFavorite.css";
 
 function useQuery() {
   return new URLSearchParams(useLocation().search);
@@ -50,7 +52,7 @@ export default function SharedFavorite() {
   return (
     <div>
       <Header />
-      <div style={{ maxWidth: 900, margin: "2rem auto", padding: "0 1rem" }}>
+      <div className="page-container shared-favorites-page">
         <h2>{title}</h2>
         {!listId ? (
           <p>Share the link in the format <code>?list=&lt;listId&gt;</code></p>
@@ -108,18 +110,27 @@ function SharedItems({ items, api }) {
   if (loading) return <p>Loading images…</p>;
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12 }}>
+    <div className="shared-items-grid">
       {rows.map(item => (
-        <div key={item.movie_id} style={{ border: '1px solid #eee', padding: 8, display: 'flex', gap: 12 }}>
-          <div style={{ width: 92, height: 138, flex: '0 0 auto' }}>
+        <div key={item.movie_id} className="shared-item-card">
+          <div className="shared-item-image-wrapper">
             {item.image ? (
-              <img src={item.image} alt={item.title || 'Poster'} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              <img
+                src={item.image}
+                alt={item.title || 'Poster'}
+                className="shared-item-image"
+              />
             ) : (
-              <div style={{ width: '100%', height: '100%', background: '#eee', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#888' }}>No image</div>
+              <div className="shared-item-placeholder">No image</div>
             )}
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-            <Link to={`/movie/${item.movie_id}`} style={{ textDecoration: 'none', color: '#222', fontWeight: 600 }}>{item.title || 'Unnamed'}</Link>
+          <div className="shared-item-content">
+            <Link
+              to={`/movie/${item.movie_id}`}
+              className="shared-item-link"
+            >
+              {item.title || 'Unnamed'}
+            </Link>
           </div>
         </div>
       ))}

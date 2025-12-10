@@ -1,0 +1,170 @@
+/* Group main section */
+.group-title {
+  margin: 0 0 1rem;
+}
+
+/* description under title */
+.group-description {
+  margin-top: 6px;
+  color: #444;
+}
+
+.group-movies-section {
+  margin-top: 1rem;
+}
+
+.section-label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+/* wrapper for each item (card + actions) */
+.group-movie-item {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.group-movie-name {
+  margin-top: 8px;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.group-movie-link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
+.group-movie-link:focus-visible {
+  outline: 2px solid #0070f3;
+  outline-offset: 2px;
+}
+
+/* delete button row under card */
+.group-movie-actions {
+  margin-top: 6px;
+  display: flex;
+  justify-content: center;
+}
+
+/* empty state */
+.group-empty-text {
+  color: #666;
+}
+
+.showtime-list {
+  display: grid;
+  gap: 12px;
+}
+
+.showtime-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border: 1px solid #eee;
+  border-radius: 6px;
+  background: #fafafa;
+}
+
+.showtime-date {
+  font-weight: 600;
+}
+
+.showtime-movie {
+  color: #444;
+}
+
+.showtime-movie-link {
+  text-decoration: none;
+  color: inherit;
+}
+
+.showtime-movie-link:hover {
+  text-decoration: underline;
+}
+
+.showtime-movie-link:focus-visible {
+  outline: 2px solid #0070f3;
+  outline-offset: 2px;
+}
+
+/* Movies inside group */
+.group-movie-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 1.5rem;
+}
+
+/* wrapper for each item (card + actions) */
+.group-movie-item {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Card */
+.group-movie-card {
+  display: flex;
+  flex-direction: column;
+  background-color: #141414;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+/* Make whole card clickable */
+.group-movie-link {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Image area: fixed aspect ratio, no “bars” from sizing */
+.group-movie-image {
+  width: 100%;
+  aspect-ratio: 2 / 3;   /* poster aspect ratio */
+  overflow: hidden;
+  background: #141414;
+}
+
+/* Force the poster to fill the container */
+.group-movie-image img,
+.group-movie-poster {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;     /* crop instead of letterboxing */
+  display: block;
+}
+
+/* Placeholder uses same sizing */
+.group-movie-placeholder {
+  width: 100%;
+  height: 100%;
+  background: #222;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #aaa;
+  font-size: 0.9rem;
+}
+
+.group-movie-name {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.9rem;
+  text-align: center;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  color: #000000;       
+  background: #ffffff;
+  font-weight: 600;
+}
+
+.group-members-section {
+  margin-top: 4rem;
+}

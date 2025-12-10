@@ -90,7 +90,7 @@ export default function CreateGroup() {
 
           {error && <div className="error-text">{error}</div>}
 
-          <div style={{ display: "flex", gap: 8 }}>
+          <div className="form-actions">
             <button
               type="submit"
               disabled={submitting}

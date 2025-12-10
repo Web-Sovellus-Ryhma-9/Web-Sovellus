@@ -1,0 +1,83 @@
+.home-container {
+  max-width: 1100px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+.home-container.page-container {
+  background: transparent;
+  box-shadow: none;
+  border-radius: 0;
+  padding: 0 1rem;
+}
+
+.movie-row {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+}
+
+/* Carousel helpers */
+.carousel-wrapper {
+  position: relative;
+  overflow: hidden;
+}
+
+.carousel-controls {
+  position: absolute;
+  right: 8px;
+  top: -40px;
+  display: flex;
+  gap: 8px;
+}
+
+.carousel-btn {
+  padding: 6px 10px;
+  border-radius: 4px;
+  border: 1px solid #bbb;
+  background: #fff;
+  cursor: pointer;
+}
+
+/* Scroll track with repeated content */
+.scroll-track {
+  display: flex;
+}
+
+.carousel-copy {
+  display: flex;
+}
+
+.movie-card {
+  scroll-snap-align: start;
+  width: 200px;
+  flex: 0 0 200px;
+  text-align: center;
+  margin-right: 16px;
+  cursor: pointer;
+}
+
+.movie-card img {
+  max-width: 100%;
+  height: auto;
+}
+
+.movie-poster {
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  height: auto;
+  object-fit: cover;
+  display: block;
+  background: #f0f0f0;
+}
+
+/* Text below poster */
+.movie-info {
+  margin-top: 8px;
+}
+
+.movie-premiere {
+  font-size: 12px;
+  color: #666;
+}

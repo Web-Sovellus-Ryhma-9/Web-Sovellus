@@ -1,0 +1,60 @@
+/* Search results */
+.search-results {
+  margin-top: 12px;
+}
+
+.search-result {
+  display: flex;
+  margin-bottom: 12px;
+  cursor: pointer;
+}
+
+.result-poster {
+  width: 100px;
+  height: auto;
+  margin-right: 12px;
+}
+
+.result-placeholder {
+  width: 100px;
+  height: 150px;
+  background: #ddd;
+  margin-right: 12px;
+}
+
+.result-info h3 {
+  margin: 0;
+}
+
+.result-info p {
+  margin: 6px 0;
+  color: #444;
+}
+
+/* Filters row above results */
+.search-filters {
+  margin-bottom: 12px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.year-input {
+  width: 100px;
+}
+
+/* Load more footer */
+.load-more-container {
+  text-align: center;
+  margin-top: 12px;
+}
+
+.load-more {
+  padding: 8px 12px;
+}
+
+.no-more-results {
+  color: #666;
+  margin-top: 8px;
+}

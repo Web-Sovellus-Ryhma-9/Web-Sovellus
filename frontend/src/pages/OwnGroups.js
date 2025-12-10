@@ -99,13 +99,13 @@ export default function OwnGroups() {
     <div>
       <Header />
       <div className="page-container">
-        <div className="page-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <h2 style={{ margin: 0 }}>Own Groups</h2>
+        <div className="page-header">
+          <h2 className="page-title">Own Groups</h2>
           <div className="header-actions">
-            <Link to="/groups" style={{ textDecoration: "none" }}>
+            <Link to="/groups" className="link-unstyled">
               <button className="btn ghost">Groups</button>
             </Link>
-            <Link to="/creategroup" style={{ textDecoration: "none" }}>
+            <Link to="/creategroup" className="link-unstyled">
               <button className="btn primary">Create Group</button>
             </Link>
           </div>
@@ -119,51 +119,32 @@ export default function OwnGroups() {
           {groups.map((g) => (
             <div
               key={g.group_id}
-              className="group-card"
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 12,
-                padding: 12,
-                border: "1px solid #eee",
-                borderRadius: 6,
-                marginBottom: 10,
-              }}
+              className="group-card own-groups-card"
             >
               <div
                 className="group-image"
-                style={{
-                  width: 80,
-                  height: 60,
-                  background: "#f6f6f6",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  borderRadius: 4,
-                  overflow: "hidden",
-                }}
               >
                 {g.image ? (
-                  <img src={g.image} alt={g.group_name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  <img src={g.image} alt={g.group_name} />
                 ) : (
-                  <div style={{ color: "#666", fontSize: 12 }}>Kuva</div>
+                  <div className="group-image-placeholder">Kuva</div>
                 )}
               </div>
 
-              <div className="group-info" style={{ flex: 1 }}>
-                <Link to={`/group/${g.group_id}`} style={{ textDecoration: "none", color: "inherit" }}>
-                  <h3 style={{ margin: 0 }}>{g.group_name}</h3>
+              <div className="group-info">
+                <Link to={`/group/${g.group_id}`} className="link-unstyled">
+                  <h3>{g.group_name}</h3>
                 </Link>
-                <p style={{ margin: "6px 0 0", color: "#444" }}>{g.description}</p>
+                <p className="group-description-text">{g.description}</p>
               </div>
 
-              <div className="group-action" style={{ marginLeft: 12 }}>
+              <div className="group-action">
                 {g.isOwner ? (
-                  <button className="btn" onClick={() => handleManage(g)}>
+                  <button className="btn btn-large" onClick={() => handleManage(g)}>
                     Manage
                   </button>
                 ) : (
-                  <button className="btn" disabled style={{ background: '#ddd' }}>
+                  <button className="btn btn-large" disabled>
                     Member
                   </button>
                 )}
