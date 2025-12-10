@@ -4,6 +4,7 @@ import { createAccount, findByUsername, findByEmail, findByUsernameOrEmail, dele
 
 const JWT_SECRET = process.env.JWT_SECRET || "dev_jwt_secret";
 const ALLOWED_AVATARS = [
+  "avatars/default.png",
   "avatars/avatar1.png",
   "avatars/avatar2.png",
   "avatars/avatar3.png",

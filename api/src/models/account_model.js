@@ -12,7 +12,7 @@ export async function findByEmail(email) {
   return rows[0];
 }
 
-export async function createAccount(username, email, password_hash, avatar = "avatars/avatar1.png") {
+export async function createAccount(username, email, password_hash, avatar = "avatars/default.png") {
   const sql = `INSERT INTO account (username, email, password_hash, avatar) VALUES ($1, $2, $3, $4) RETURNING account_id, username, email, avatar`;
   const { rows } = await pool.query(sql, [username, email, password_hash, avatar]);
   return rows[0];

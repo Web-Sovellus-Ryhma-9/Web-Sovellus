@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS account (
   account_id SERIAL PRIMARY KEY,
   username VARCHAR(100) UNIQUE NOT NULL,
   email VARCHAR(255) UNIQUE NOT NULL,
-  avatar TEXT DEFAULT 'avatars/avatar1.png',
+  avatar TEXT DEFAULT 'avatars/default.png',
   password_hash TEXT NOT NULL
 );
 

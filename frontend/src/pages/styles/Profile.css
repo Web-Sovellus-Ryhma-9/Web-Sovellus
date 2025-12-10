@@ -124,8 +124,8 @@
 
 .avatar-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
   margin-top: 12px;
 }
 
@@ -136,6 +136,7 @@
   background: #f6f6f6;
   cursor: pointer;
   transition: border-color 0.15s ease, transform 0.15s ease;
+  height: 80px;
 }
 
 .avatar-choice:hover,
