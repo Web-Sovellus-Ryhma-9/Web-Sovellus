@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import Header from "../components/Header";
 import "./styles/pagestyles.css";
+import "./styles/Auth.css";
 
 
 export default function Register() {
@@ -50,32 +51,66 @@ export default function Register() {
   return (
     <div>
       <Header />
-      <div className="auth-page-container">
-
-        <h2>Register</h2>
+      <div className="page-container auth-page-container">
+        <h2 className="auth-title">Register</h2>
         <form className="register-form" onSubmit={handleSubmit}>
           <div>
-            <input type="text" id="username" name="username"
-            placeholder="Username"  
-            value={formData.username} onChange={handleChange} required/>
+            <input
+              className="auth-input"
+              type="text"
+              id="username"
+              name="username"
+              placeholder="Username"
+              value={formData.username}
+              onChange={handleChange}
+              required
+            />
           </div>
           <div>
-            <input type="email" id="email" name="email" 
-            placeholder="Email"
-            value={formData.email} onChange={handleChange} required/>
+            <input
+              className="auth-input"
+              type="email"
+              id="email"
+              name="email"
+              placeholder="Email"
+              value={formData.email}
+              onChange={handleChange}
+              required
+            />
           </div>
           <div>
-            <input type="password" id="password" name="password"
-            placeholder="Password" 
-            value={formData.password} onChange={handleChange} required/>
+            <input
+              className="auth-input"
+              type="password"
+              id="password"
+              name="password"
+              placeholder="Password"
+              value={formData.password}
+              onChange={handleChange}
+              required
+            />
           </div>
           <div>
-            <input type="password" id="confirmPassword" name="confirmPassword"
-            placeholder="Confirm Password"
-            value={formData.confirmPassword} onChange={handleChange} required/>
+            <input
+              className="auth-input"
+              type="password"
+              id="confirmPassword"
+              name="confirmPassword"
+              placeholder="Confirm Password"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              required
+            />
           </div>
-          <span className="nav-text-button" onClick={() => (window.location.href = "/login")}>Already registered? Log in!</span>
-          <button type="Submit">Register</button>
+          <span
+            className="nav-text-button"
+            onClick={() => (window.location.href = "/login")}
+          >
+            Already registered? Log in!
+          </span>
+          <button type="submit" className="btn primary auth-submit">
+            Register
+          </button>
         </form>
         {showModal && (
           <div
@@ -94,7 +129,7 @@ export default function Register() {
             </div>
           </div>
         )}
-        </div>
+      </div>
     </div>
   );
 }
