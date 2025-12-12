@@ -18,6 +18,13 @@ export default function HandleGroup() {
   const navigate = useNavigate();
   const API_BASE = process.env.REACT_APP_API_URL || "";
 
+  function resolveAvatarPath(name) {
+    if (!name) return null;
+    const clean = String(name).replace(/^\//, "");
+    if (/^https?:\/\//i.test(clean) || clean.startsWith("data:")) return clean;
+    return `${process.env.PUBLIC_URL || ""}/${clean}`;
+  }
+
   useEffect(() => {
     (async () => {
       try {
@@ -214,27 +221,38 @@ export default function HandleGroup() {
                 <p className="muted">No pending requests.</p>
               ) : (
                 <ul className="request-list">
-                  {members.filter(m => m.role_status === 3).map((r) => (
-                    <li key={r.member_id ?? r.account_id} className="request-item">
-                      <span className="request-user">{r.username ?? r.account_id}</span>
-                      <div className="request-actions">
-                        <button
-                          className="btn success"
-                          onClick={() => handleAccept(r)}
-                          aria-label={`Accept ${r.username ?? r.account_id}`}
-                        >
-                          Accept
-                        </button>
-                        <button
-                          className="btn danger"
-                          onClick={() => handleReject(r)}
-                          aria-label={`Reject ${r.username ?? r.account_id}`}
-                        >
-                          Reject
-                        </button>
-                      </div>
-                    </li>
-                  ))}
+                  {members.filter(m => m.role_status === 3).map((r) => {
+                    const avatarSrc = resolveAvatarPath(r.avatar);
+                    const initial = (r.username || 'U').charAt(0).toUpperCase();
+                    return (
+                      <li key={r.member_id ?? r.account_id} className="request-item">
+                        <div className="request-avatar">
+                          {avatarSrc ? (
+                            <img src={avatarSrc} alt={`${r.username || 'User'} avatar`} className="request-avatar-img" />
+                          ) : (
+                            <span className="request-avatar-fallback">{initial}</span>
+                          )}
+                        </div>
+                        <span className="request-user">{r.username ?? r.account_id}</span>
+                        <div className="request-actions">
+                          <button
+                            className="btn success"
+                            onClick={() => handleAccept(r)}
+                            aria-label={`Accept ${r.username ?? r.account_id}`}
+                          >
+                            Accept
+                          </button>
+                          <button
+                            className="btn danger"
+                            onClick={() => handleReject(r)}
+                            aria-label={`Reject ${r.username ?? r.account_id}`}
+                          >
+                            Reject
+                          </button>
+                        </div>
+                      </li>
+                    );
+                  })}
                 </ul>
               )}
             </div>
@@ -245,44 +263,55 @@ export default function HandleGroup() {
                 <p className="muted">No members yet.</p>
               ) : (
                 <ul className="request-list">
-                  {members.filter(m => m.role_status === 1 || m.role_status === 2).map((m) => (
-                    <li key={m.member_id ?? m.account_id} className="request-item">
-                      <span className="request-user">{m.username ?? m.account_id}</span>
-                      <span className="member-role-label">
-                        {m.role_status === 1 ? "Owner" : "Member"}
-                      </span>
-                      {isOwner && m.role_status !== 1 && (
-                        <button
-                          className="btn danger member-remove-btn"
-                          onClick={async () => {
-                            if (!confirm(`Remove ${m.username || m.account_id} from group?`)) return;
-                            try {
-                              const token = localStorage.getItem('token');
-                              const idToDelete = m.member_id || m.account_id;
-                              const delUrl = `${API_BASE}/groups/members/${idToDelete}`;
-                              const headers = {
-                                'Content-Type': 'application/json',
-                                ...(token ? { Authorization: `Bearer ${token}` } : {}),
-                              };
-                              const res = await fetch(delUrl, { method: 'DELETE', headers });
-                              if (!res.ok) {
-                                const body = await res.json().catch(() => ({}));
-                                alert(body.error || `Failed to remove member (status ${res.status})`);
-                                return;
+                  {members.filter(m => m.role_status === 1 || m.role_status === 2).map((m) => {
+                    const avatarSrc = resolveAvatarPath(m.avatar);
+                    const initial = (m.username || 'U').charAt(0).toUpperCase();
+                    return (
+                      <li key={m.member_id ?? m.account_id} className="request-item">
+                        <div className="request-avatar">
+                          {avatarSrc ? (
+                            <img src={avatarSrc} alt={`${m.username || 'Member'} avatar`} className="request-avatar-img" />
+                          ) : (
+                            <span className="request-avatar-fallback">{initial}</span>
+                          )}
+                        </div>
+                        <span className="request-user">{m.username ?? m.account_id}</span>
+                        <span className="member-role-label">
+                          {m.role_status === 1 ? "Owner" : "Member"}
+                        </span>
+                        {isOwner && m.role_status !== 1 && (
+                          <button
+                            className="btn danger member-remove-btn"
+                            onClick={async () => {
+                              if (!confirm(`Remove ${m.username || m.account_id} from group?`)) return;
+                              try {
+                                const token = localStorage.getItem('token');
+                                const idToDelete = m.member_id || m.account_id;
+                                const delUrl = `${API_BASE}/groups/members/${idToDelete}`;
+                                const headers = {
+                                  'Content-Type': 'application/json',
+                                  ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                                };
+                                const res = await fetch(delUrl, { method: 'DELETE', headers });
+                                if (!res.ok) {
+                                  const body = await res.json().catch(() => ({}));
+                                  alert(body.error || `Failed to remove member (status ${res.status})`);
+                                  return;
+                                }
+                                // remove from UI
+                                setMembers(prev => prev.filter(x => (x.member_id || x.account_id) !== (m.member_id || m.account_id)));
+                              } catch (err) {
+                                console.error('[HandleGroup] remove member error', err);
+                                alert('Network error while removing member');
                               }
-                              // remove from UI
-                              setMembers(prev => prev.filter(x => (x.member_id || x.account_id) !== (m.member_id || m.account_id)));
-                            } catch (err) {
-                              console.error('[HandleGroup] remove member error', err);
-                              alert('Network error while removing member');
-                            }
-                          }}
-                        >
-                          Remove
-                        </button>
-                      )}
-                    </li>
-                  ))}
+                            }}
+                          >
+                            Remove
+                          </button>
+                        )}
+                      </li>
+                    );
+                  })}
                 </ul>
               )}
             </div>

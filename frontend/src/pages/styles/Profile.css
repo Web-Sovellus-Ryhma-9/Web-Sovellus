@@ -92,6 +92,14 @@
   justify-content: center;
   font-size: 32px;
   font-weight: 600;
+  overflow: hidden;
+}
+
+.profile-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .profile-avatar-wrapper {
@@ -112,4 +120,48 @@
 .profile-email {
   font-size: 13px;
   color: #666;
+}
+
+.avatar-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.avatar-choice {
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: 12px;
+  background: #f6f6f6;
+  cursor: pointer;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+  height: 80px;
+}
+
+.avatar-choice:hover,
+.avatar-choice:focus-visible {
+  border-color: #0070f3;
+  outline: none;
+  transform: translateY(-1px);
+}
+
+.avatar-choice.selected {
+  border-color: #111;
+}
+
+.avatar-choice-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  border-radius: 10px;
+}
+
+.avatar-choice-fallback {
+  display: block;
+  padding: 16px;
+  text-align: center;
+  color: #444;
+  font-weight: 600;
 }

@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import "./styles/pagestyles.css";
+import "./styles/CreateGroup.css";
+import "./styles/Auth.css";
 
 export default function CreateGroup() {
   const [name, setName] = useState("");
@@ -62,14 +64,14 @@ export default function CreateGroup() {
   return (
     <div>
       <Header />
-      <div className="page-container">
-        <h2>Create Group</h2>
+      <div className="page-container create-group-page-container">
+        <h2 className="create-group-title">Create Group</h2>
 
-        <form onSubmit={handleSubmit} className="form-grid">
+        <form onSubmit={handleSubmit} className="create-group-form">
           <label className="label">
             Group name
             <input
-              className="input-field"
+              className="auth-input"     // was: input-field
               value={name}
               onChange={(e) => setName(e.target.value)}
               disabled={submitting}
@@ -80,7 +82,7 @@ export default function CreateGroup() {
           <label className="label">
             Description (optional)
             <textarea
-              className="textarea-field"
+              className="auth-textarea"  // was: textarea-field
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               disabled={submitting}
@@ -104,14 +106,21 @@ export default function CreateGroup() {
             </button>
           </div>
 
-          <small className="small-note">
-            Note: if the server is not available, the group will be saved locally in your browser (demo only).
+          <small className="small-note create-group-note">
+            Note: if the server is not available, the group will be saved
+            locally in your browser (demo only).
           </small>
         </form>
       </div>
       {showModal && (
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
-          <div className="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modal-title"
+            onClick={(e) => e.stopPropagation()}
+          >
             <h3 id="modal-title">{modalContent.title}</h3>
             <p>{modalContent.message}</p>
           </div>

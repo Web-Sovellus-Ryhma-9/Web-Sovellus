@@ -32,7 +32,7 @@ export async function updateGroupName(group_id, group_name, description = null) 
 
 export async function getMembersForGroup(group_id) {
   const sql = `
-    SELECT gm.member_id, gm.account_id, gm.role_status, gm.joined_at, a.username
+    SELECT gm.member_id, gm.account_id, gm.role_status, gm.joined_at, a.username, a.avatar
     FROM group_members gm
     LEFT JOIN account a ON a.account_id = gm.account_id
     WHERE gm.group_id = $1

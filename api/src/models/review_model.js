@@ -2,10 +2,11 @@ import pool from "../database.js";
 
 export async function getReviewsByMovie(movie_id) {
   const sql = `
-    SELECT review_id, movie_id, account_id, username, rating, comment, created_at
-    FROM reviews
-    WHERE movie_id = $1
-    ORDER BY created_at DESC
+    SELECT r.review_id, r.movie_id, r.account_id, r.username, r.rating, r.comment, r.created_at, COALESCE(a.avatar, NULL) AS avatar
+    FROM reviews r
+    LEFT JOIN account a ON a.account_id = r.account_id
+    WHERE r.movie_id = $1
+    ORDER BY r.created_at DESC
   `;
   const { rows } = await pool.query(sql, [String(movie_id)]);
   return rows;

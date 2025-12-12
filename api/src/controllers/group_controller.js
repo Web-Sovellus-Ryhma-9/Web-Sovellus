@@ -113,7 +113,7 @@ export async function getMembers(req, res, next) {
     if (!groupId) return res.status(400).json({ error: "Missing group id" });
     const rows = await getMembersForGroup(groupId);
     // map fields to what frontend expects
-    res.json(rows.map(r => ({ member_id: r.member_id, account_id: r.account_id, username: r.username, role_status: r.role_status })));
+    res.json(rows.map(r => ({ member_id: r.member_id, account_id: r.account_id, username: r.username, avatar: r.avatar, role_status: r.role_status })));
   } catch (err) {
     next(err);
   }

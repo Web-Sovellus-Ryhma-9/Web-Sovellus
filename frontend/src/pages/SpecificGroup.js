@@ -20,6 +20,13 @@ export default function SpecificGroup() {
 
   const API_BASE = process.env.REACT_APP_API_URL || "";
 
+  function resolveAvatarPath(name) {
+    if (!name) return null;
+    const clean = String(name).replace(/^\//, "");
+    if (/^https?:\/\//i.test(clean) || clean.startsWith("data:")) return clean;
+    return `${process.env.PUBLIC_URL || ""}/${clean}`;
+  }
+
   function decodeJwt(token) {
     try {
       const p = token.split(".")[1];
@@ -243,21 +250,31 @@ export default function SpecificGroup() {
               {members.length === 0 ? (
                 <li className="member-item muted">No members yet.</li>
               ) : (
-                members.map(m => (
-                  <li key={m.member_id ?? m.account_id} className="member-item">
-                    <div className="member-avatar">👤</div>
-                    <span className="member-name">{m.username || m.account_id}</span>
-                    <span className="member-role-label">
-                      {m.role_status === 1
-                        ? 'Owner'
-                        : (m.role_status === 2
-                          ? 'Member'
-                          : m.role_status === 3
-                            ? 'Pending'
-                            : '')}
-                    </span>
-                  </li>
-                ))
+                members.map(m => {
+                  const avatarSrc = resolveAvatarPath(m.avatar);
+                  const initial = (m.username || 'U').charAt(0).toUpperCase();
+                  return (
+                    <li key={m.member_id ?? m.account_id} className="member-item">
+                      <div className="member-avatar">
+                        {avatarSrc ? (
+                          <img src={avatarSrc} alt={`${m.username || 'Member'} avatar`} className="member-avatar-img" />
+                        ) : (
+                          <span className="member-avatar-fallback">{initial}</span>
+                        )}
+                      </div>
+                      <span className="member-name">{m.username || m.account_id}</span>
+                      <span className="member-role-label">
+                        {m.role_status === 1
+                          ? 'Owner'
+                          : (m.role_status === 2
+                            ? 'Member'
+                            : m.role_status === 3
+                              ? 'Pending'
+                              : '')}
+                      </span>
+                    </li>
+                  );
+                })
               )}
             </ul>
 

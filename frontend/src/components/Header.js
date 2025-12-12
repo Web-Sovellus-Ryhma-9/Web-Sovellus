@@ -17,6 +17,13 @@ function Header() {
   const wrapperRef = useRef(null);
   const API_BASE = process.env.REACT_APP_API_URL || "";
 
+  function resolveAvatarPath(name) {
+    if (!name) return null;
+    const clean = String(name).replace(/^\//, "");
+    if (/^https?:\/\//i.test(clean) || clean.startsWith("data:")) return clean;
+    return `${process.env.PUBLIC_URL || ""}/${clean}`;
+  }
+
   function onSubmit(e) {
     e.preventDefault();
     // allow submitting empty query — include saved filters if present
@@ -54,12 +61,23 @@ function Header() {
 
   // load account from localStorage
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem("account");
-      if (raw) setAccount(JSON.parse(raw));
-    } catch (err) {
-      setAccount(null);
-    }
+    const syncAccount = () => {
+      try {
+        const raw = localStorage.getItem("account");
+        setAccount(raw ? JSON.parse(raw) : null);
+      } catch (err) {
+        setAccount(null);
+      }
+    };
+    syncAccount();
+    const onStorage = () => syncAccount();
+    const onAccountUpdated = () => syncAccount();
+    window.addEventListener("storage", onStorage);
+    window.addEventListener("account-updated", onAccountUpdated);
+    return () => {
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener("account-updated", onAccountUpdated);
+    };
   }, []);
 
   useEffect(() => {
@@ -321,7 +339,11 @@ function Header() {
               title={account.username}
             >
               <div className="avatar-circle">
-                {account.username ? account.username.charAt(0).toUpperCase() : '?'}
+                {resolveAvatarPath(account.avatar) ? (
+                  <img src={resolveAvatarPath(account.avatar)} alt="Avatar" className="avatar-circle-img" />
+                ) : (
+                  (account.username ? account.username.charAt(0).toUpperCase() : '?')
+                )}
               </div>
             </button>
 

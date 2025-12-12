@@ -30,6 +30,13 @@ function Stars({ value, onChange, editable = false }) {
   return <span>{stars}</span>;
 }
 
+function resolveAvatarPath(name) {
+  if (!name) return null;
+  const clean = String(name).replace(/^\//, "");
+  if (/^https?:\/\//i.test(clean) || clean.startsWith("data:")) return clean;
+  return `${process.env.PUBLIC_URL || ""}/${clean}`;
+}
+
 export default function SpecificMovie() {
   const { id } = useParams();
   const location = useLocation();
@@ -103,7 +110,7 @@ export default function SpecificMovie() {
         const r = await fetch(`${API_BASE}/movies/${id}/reviews`);
         if (!r.ok) throw new Error("no reviews api");
         const rev = await r.json();
-        // map server shape { id/ review_id, username, created_at } -> { id, rating, comment, user, date, account_id }
+        // map server shape { id/ review_id, username, created_at, avatar } -> { id, rating, comment, user, date, account_id, avatar }
         const mapped = (rev || []).map(item => ({
           id: item.id || item.review_id,
           rating: item.rating,
@@ -111,6 +118,7 @@ export default function SpecificMovie() {
           user: item.username || item.user || 'Anonyymi',
           date: item.created_at || item.date || new Date().toISOString(),
           account_id: item.account_id || null,
+          avatar: item.avatar || null,
         }));
         if (!cancelled) setReviews(mapped);
       } catch (e) {
@@ -376,6 +384,7 @@ export default function SpecificMovie() {
             user: item.username || item.user || 'Anonyymi',
             date: item.created_at || item.date || new Date().toISOString(),
             account_id: item.account_id || null,
+            avatar: item.avatar || null,
           }));
           setReviews(mapped);
           localStorage.removeItem(`movieReviews:${id}`);
@@ -603,10 +612,22 @@ export default function SpecificMovie() {
               <p>No reviews yet.</p>
             ) : (
               <div className="reviews-list">
-                    {reviews.map(r => (
+                    {reviews.map(r => {
+                      const avatarSrc = resolveAvatarPath(r.avatar);
+                      const initial = (r.user || 'A').charAt(0).toUpperCase();
+                      return (
                       <div key={r.id} className="review-item">
                         <div className="review-header">
-                          <div className="review-user">{r.user || "Anonyymi"}</div>
+                          <div className="review-user-section">
+                            <div className="review-avatar">
+                              {avatarSrc ? (
+                                <img src={avatarSrc} alt={`${r.user || 'User'} avatar`} className="review-avatar-img" />
+                              ) : (
+                                <span className="review-avatar-fallback">{initial}</span>
+                              )}
+                            </div>
+                            <div className="review-user">{r.user || "Anonyymi"}</div>
+                          </div>
                           <div className="review-meta">
                             <Stars value={Number(r.rating) || 0} />
                             {loggedIn && account && r.account_id && Number(r.account_id) === Number(account.account_id) && (
@@ -627,6 +648,7 @@ export default function SpecificMovie() {
                                       user: item.username || item.user || 'Anonyymi',
                                       date: item.created_at || item.date || new Date().toISOString(),
                                       account_id: item.account_id || null,
+                                      avatar: item.avatar || null,
                                     }));
                                     setReviews(mapped);
                                   }
@@ -641,7 +663,8 @@ export default function SpecificMovie() {
                         {r.comment && <div className="review-comment">{r.comment}</div>}
                         <div className="review-date">{new Date(r.date || Date.now()).toLocaleString(undefined, { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
                       </div>
-                    ))}
+                    );
+                    })}
               </div>
             )}
           </div>
