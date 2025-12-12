@@ -41,6 +41,8 @@ export default function SpecificMovie() {
   const [localGroups, setLocalGroups] = useState([]);
   const [serverGroups, setServerGroups] = useState([]);
   const [selectedGroup, setSelectedGroup] = useState("");
+  const [groupDropdownOpen, setGroupDropdownOpen] = useState(false);
+  const groupDropdownRef = React.useRef(null);
   const [joining, setJoining] = useState(false);
   const [loggedIn, setLoggedIn] = useState(!!localStorage.getItem("token"));
   const [account, setAccount] = useState(null);
@@ -199,6 +201,24 @@ export default function SpecificMovie() {
     } catch (e) {
       setAccount(null);
     }
+  }, []);
+
+  // close group dropdown when clicking outside or pressing Escape
+  useEffect(() => {
+    function onDocClick(e) {
+      if (groupDropdownRef.current && !groupDropdownRef.current.contains(e.target)) {
+        setGroupDropdownOpen(false);
+      }
+    }
+    function onKey(e) {
+      if (e.key === 'Escape') setGroupDropdownOpen(false);
+    }
+    document.addEventListener('mousedown', onDocClick);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDocClick);
+      document.removeEventListener('keydown', onKey);
+    };
   }, []);
 
   function isFavorite() {
@@ -383,6 +403,17 @@ export default function SpecificMovie() {
     return h > 0 ? `${h}h ${m}min` : `${m}min`;
   }
 
+  // scroll to reviews section (smooth)
+  function scrollToReviews() {
+    const el = document.getElementById('reviews-section');
+    if (el && typeof el.scrollIntoView === 'function') {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+      // fallback: scroll to bottom
+      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    }
+  }
+
   if (loading || !movie) return (
     <div>
       <Header />
@@ -424,15 +455,37 @@ export default function SpecificMovie() {
 
             <div className="movie-actions">
               <div className="movie-add-to-group-label">Add to group</div>
-              <select value={selectedGroup} onChange={e => setSelectedGroup(e.target.value)} className="group-select">
-                <option value="">-- Select group --</option>
-                {localGroups.map(g => (
-                  <option key={`local-${g.id}`} value={g.id}>{g.name}</option>
-                ))}
-                {serverGroups && serverGroups.filter(g => Number(g.role_status) === 1 || Number(g.role_status) === 2).map(g => (
-                  <option key={`srv-${g.group_id || g.id}`} value={g.group_id || g.id}>{g.name || g.group_name || g.groupName || `Group ${g.group_id || g.id}`}</option>
-                ))}
-              </select>
+              <div className="group-select-wrapper" ref={groupDropdownRef}>
+                <button
+                  type="button"
+                  className="group-select"
+                  onClick={() => setGroupDropdownOpen(open => !open)}
+                  aria-haspopup="listbox"
+                  aria-expanded={groupDropdownOpen}
+                >
+                  {(() => {
+                    if (!selectedGroup) return "-- Select group --";
+                    const lg = localGroups.find(g => String(g.id) === String(selectedGroup));
+                    if (lg) return lg.name;
+                    const sg = serverGroups.find(g => String(g.group_id || g.id) === String(selectedGroup) || String(g.id) === String(selectedGroup));
+                    if (sg) return sg.name || sg.group_name || sg.groupName || `Group ${sg.group_id || sg.id}`;
+                    return "-- Select group --";
+                  })()}
+                </button>
+
+                {groupDropdownOpen && (
+                  <ul className="group-dropdown" role="listbox">
+                    <li key="opt-empty" role="option" tabIndex={0} className={`group-dropdown-item ${selectedGroup === '' ? 'selected' : ''}`} onClick={() => { setSelectedGroup(''); setGroupDropdownOpen(false); }} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { setSelectedGroup(''); setGroupDropdownOpen(false); } }}>-- Select group --</li>
+                    {localGroups.map(g => (
+                      <li key={`local-${g.id}`} role="option" tabIndex={0} className={`group-dropdown-item ${String(selectedGroup) === String(g.id) ? 'selected' : ''}`} onClick={() => { setSelectedGroup(g.id); setGroupDropdownOpen(false); }} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { setSelectedGroup(g.id); setGroupDropdownOpen(false); } }}>{g.name}</li>
+                    ))}
+                    {serverGroups && serverGroups.filter(g => Number(g.role_status) === 1 || Number(g.role_status) === 2).map(g => (
+                      <li key={`srv-${g.group_id || g.id}`} role="option" tabIndex={0} className={`group-dropdown-item ${String(selectedGroup) === String(g.group_id || g.id) ? 'selected' : ''}`} onClick={() => { setSelectedGroup(g.group_id || g.id); setGroupDropdownOpen(false); }} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { setSelectedGroup(g.group_id || g.id); setGroupDropdownOpen(false); } }}>{g.name || g.group_name || g.groupName || `Group ${g.group_id || g.id}`}</li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+
               <button
                 onClick={joinSelectedGroup}
                 disabled={joining}
@@ -459,7 +512,15 @@ export default function SpecificMovie() {
               <Stars value={Math.round(averageRating())} />
               <span className="rating-value-inline">
                 {averageRating()} / 5
-                <span className="rating-count-inline">
+                <span
+                  className="rating-count-inline"
+                  role="button"
+                  tabIndex={0}
+                  title="Jump to reviews"
+                  onClick={scrollToReviews}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); scrollToReviews(); } }}
+                  style={{ cursor: 'pointer' }}
+                >
                   ({reviews.length} review{reviews.length === 1 ? '' : 's'})
                 </span>
               </span>
@@ -537,7 +598,7 @@ export default function SpecificMovie() {
               </div>
             </form>
 
-            <h3 className="reviews-title">Other users' reviews</h3>
+            <h3 id="reviews-section" className="reviews-title">Other users' reviews</h3>
             {reviews.length === 0 ? (
               <p>No reviews yet.</p>
             ) : (
