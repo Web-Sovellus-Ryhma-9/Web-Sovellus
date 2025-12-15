@@ -30,19 +30,29 @@ export async function getFavorites(req, res, next) {
 
     const rows = await getFavoritesByAccount(account_id);
     const items = await Promise.all(rows.map(async (r) => {
-      const id = r.movie_id;
+      // Decode media_type from stored movie_id (format: "tv:123" or "movie:456")
+      let id = r.movie_id;
       let media_type = 'movie';
-      try {
-        await getMovieDetails(id);
-        media_type = 'movie';
-      } catch (e1) {
+      
+      const parts = String(id).split(':');
+      if (parts.length === 2 && (parts[0] === 'tv' || parts[0] === 'movie')) {
+        media_type = parts[0];
+        id = parts[1];
+      } else {
+        // Fallback to detection for old stored data
         try {
-          await getTvDetails(id);
-          media_type = 'tv';
-        } catch (e2) {
+          await getMovieDetails(id);
           media_type = 'movie';
+        } catch (e1) {
+          try {
+            await getTvDetails(id);
+            media_type = 'tv';
+          } catch (e2) {
+            media_type = 'movie';
+          }
         }
       }
+      
       return { movie_id: id, title: r.title, favourite_id: r.favourite_id, movielist: r.movielist || r.Movielist, media_type };
     }));
     res.json(items);
@@ -56,16 +66,35 @@ export async function addFavorite(req, res, next) {
     const account_id = extractAccountId(req);
     if (!account_id) return res.status(401).json({ error: "Unauthorized" });
 
-    const { id: movie_id, title } = req.body;
+    const { id: movie_id, title, media_type: supplied_media_type } = req.body;
     if (!movie_id) return res.status(400).json({ error: "Missing movie id" });
 
     const list = await getOrCreateDefaultListForAccount(account_id);
 
-    const existing = await findFavoriteByAccountAndMovie(account_id, movie_id);
+    // Detect media_type if not supplied
+    let media_type = supplied_media_type || 'movie';
+    if (!supplied_media_type) {
+      try {
+        await getMovieDetails(movie_id);
+        media_type = 'movie';
+      } catch (e1) {
+        try {
+          await getTvDetails(movie_id);
+          media_type = 'tv';
+        } catch (e2) {
+          media_type = 'movie';
+        }
+      }
+    }
+
+    // Encode media_type with the ID: "tv:123" or "movie:456"
+    const encoded_id = `${media_type}:${movie_id}`;
+    
+    const existing = await findFavoriteByAccountAndMovie(account_id, encoded_id);
     if (existing) return res.status(409).json({ error: "Already favourited" });
 
-    const added = await addFavoriteToList(list.favourite_id, String(movie_id), title || null);
-    console.log(`FAV ADD: account_id=${account_id} favourite_id=${list.favourite_id} movie_id=${movie_id}`);
+    const added = await addFavoriteToList(list.favourite_id, encoded_id, title || null);
+    console.log(`FAV ADD: account_id=${account_id} favourite_id=${list.favourite_id} movie_id=${movie_id} media_type=${media_type}`);
     res.status(201).json({ message: "Added to favourites", favourite: added });
   } catch (err) {
     next(err);
@@ -81,7 +110,22 @@ export async function deleteFavorite(req, res, next) {
     if (!movie_id) return res.status(400).json({ error: "Missing movie id" });
 
     const list = await getOrCreateDefaultListForAccount(account_id);
-    const removed = await removeFavoriteFromList(list.favourite_id, String(movie_id));
+    // Try both formats: with and without media_type prefix
+    let removed = await removeFavoriteFromList(list.favourite_id, String(movie_id));
+    if (!removed) {
+      // Try to find if it was stored with media_type prefix
+      const parts = String(movie_id).split(':');
+      if (parts.length === 2) {
+        // Already has format, try as-is
+        removed = await removeFavoriteFromList(list.favourite_id, String(movie_id));
+      } else {
+        // Try both tv: and movie: prefixed versions
+        removed = await removeFavoriteFromList(list.favourite_id, `tv:${movie_id}`).catch(() => null);
+        if (!removed) {
+          removed = await removeFavoriteFromList(list.favourite_id, `movie:${movie_id}`);
+        }
+      }
+    }
     console.log(`FAV DEL: account_id=${account_id} favourite_id=${list.favourite_id} movie_id=${movie_id} removed=${!!removed}`);
     if (!removed) return res.status(404).json({ error: "Favourite not found" });
     res.json({ message: "Removed from favourites" });
@@ -109,19 +153,29 @@ export async function getPublicList(req, res, next) {
 
     const listName = rows[0].movielist || rows[0].Movielist || 'Favorites';
     const items = await Promise.all(rows.map(async (r) => {
-      const id = r.movie_id;
+      let id = r.movie_id;
       let media_type = 'movie';
-      try {
-        await getMovieDetails(id);
-        media_type = 'movie';
-      } catch (e1) {
+      
+      // Decode media_type from stored movie_id (format: "tv:123" or "movie:456")
+      const parts = String(id).split(':');
+      if (parts.length === 2 && (parts[0] === 'tv' || parts[0] === 'movie')) {
+        media_type = parts[0];
+        id = parts[1];
+      } else {
+        // Fallback to detection for old stored data
         try {
-          await getTvDetails(id);
-          media_type = 'tv';
-        } catch (e2) {
+          await getMovieDetails(id);
           media_type = 'movie';
+        } catch (e1) {
+          try {
+            await getTvDetails(id);
+            media_type = 'tv';
+          } catch (e2) {
+            media_type = 'movie';
+          }
         }
       }
+      
       return { movie_id: id, title: r.title, media_type };
     }));
     res.json({ favourite_id, listName, items });

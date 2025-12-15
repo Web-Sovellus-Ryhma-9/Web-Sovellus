@@ -121,19 +121,29 @@ export async function getGroupMovies(req, res, next) {
     if (!groupId) return res.status(400).json({ error: 'Missing group id' });
     const rows = await getMoviesForGroup(groupId);
     const items = await Promise.all(rows.map(async (r) => {
-      const id = r.movie_id;
+      // Decode media_type from stored movie_id (format: "tv:123" or "movie:456")
+      let id = r.movie_id;
       let media_type = 'movie';
-      try {
-        await getMovieDetails(id);
-        media_type = 'movie';
-      } catch (e1) {
+      
+      const parts = String(id).split(':');
+      if (parts.length === 2 && (parts[0] === 'tv' || parts[0] === 'movie')) {
+        media_type = parts[0];
+        id = parts[1];
+      } else {
+        // Fallback to detection for old stored data
         try {
-          await getTvDetails(id);
-          media_type = 'tv';
-        } catch (e2) {
+          await getMovieDetails(id);
           media_type = 'movie';
+        } catch (e1) {
+          try {
+            await getTvDetails(id);
+            media_type = 'tv';
+          } catch (e2) {
+            media_type = 'movie';
+          }
         }
       }
+      
       return { id: id, db_id: r.id, group_id: r.group_id, movie_id: id, title: r.title, image: r.image, added_at: r.added_at, media_type };
     }));
     res.json(items);
@@ -157,16 +167,26 @@ export async function addMovieToGroupHandler(req, res, next) {
     }
 
     try {
-      const added = await addGroupMovie(group_id, movie_id, title || null, image || null);
+      // Detect media_type if not supplied
       let media_type = supplied_media_type || 'movie';
-      try {
-        if (!supplied_media_type) {
-          try { await getMovieDetails(movie_id); media_type = 'movie'; }
-          catch (e1) { try { await getTvDetails(movie_id); media_type = 'tv'; } catch (e2) { media_type = 'movie'; } }
+      if (!supplied_media_type) {
+        try {
+          await getMovieDetails(movie_id);
+          media_type = 'movie';
+        } catch (e1) {
+          try {
+            await getTvDetails(movie_id);
+            media_type = 'tv';
+          } catch (e2) {
+            media_type = 'movie';
+          }
         }
-      } catch (err) {
-        media_type = supplied_media_type || 'movie';
       }
+      
+      // Encode media_type with the ID: "tv:123" or "movie:456"
+      const encoded_id = `${media_type}:${movie_id}`;
+      
+      const added = await addGroupMovie(group_id, encoded_id, title || null, image || null);
       res.status(201).json({ message: 'Movie added to group', movie: { ...added, media_type } });
     } catch (e) {
       if (e && e.code === '23505') return res.status(409).json({ error: 'Movie already added' });
@@ -191,7 +211,15 @@ export async function removeMovieFromGroupHandler(req, res, next) {
     const isMember = membership && (Number(membership.role_status) === 1 || Number(membership.role_status) === 2);
     if (!isOwner && !isMember) return res.status(403).json({ error: 'Forbidden' });
 
-    const removed = await removeGroupMovie(group_id, movie_id);
+    // Try removing with the ID as-is first
+    let removed = await removeGroupMovie(group_id, movie_id);
+    if (!removed) {
+      // Try both tv: and movie: prefixed versions
+      removed = await removeGroupMovie(group_id, `tv:${movie_id}`).catch(() => null);
+      if (!removed) {
+        removed = await removeGroupMovie(group_id, `movie:${movie_id}`);
+      }
+    }
     if (!removed) return res.status(404).json({ error: 'Movie not found in group' });
     res.json({ message: 'Movie removed', removed });
   } catch (err) {
