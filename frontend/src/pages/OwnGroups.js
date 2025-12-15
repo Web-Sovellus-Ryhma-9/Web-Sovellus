@@ -121,15 +121,7 @@ export default function OwnGroups() {
               key={g.group_id}
               className="group-card own-groups-card"
             >
-              <div
-                className="group-image"
-              >
-                {g.image ? (
-                  <img src={g.image} alt={g.group_name} />
-                ) : (
-                  <div className="group-image-placeholder">Kuva</div>
-                )}
-              </div>
+
 
               <div className="group-info">
                 <Link to={`/group/${g.group_id}`} className="link-unstyled">

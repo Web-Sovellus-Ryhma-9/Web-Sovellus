@@ -272,13 +272,7 @@ export default function Groups() {
 
               return (
                 <div key={gid} className="group-card">
-                  <div className="group-image">
-                    {group.image ? (
-                      <img src={group.image} alt={group.name} />
-                    ) : (
-                      <div className="group-image-placeholder">Image</div>
-                    )}
-                  </div>
+
 
                   <div className="group-info">
                     <Link
