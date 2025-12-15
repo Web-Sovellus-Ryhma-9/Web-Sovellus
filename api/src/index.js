@@ -30,6 +30,18 @@ app.use("/groups", groupListRouter);
 app.use("/favorites", favouriteRouter);
 app.use("/movies", reviewsRouter);
 
+// Central error handler to ensure JSON responses instead of HTML
+// This catches errors passed with next(err) from controllers.
+app.use((err, req, res, next) => {
+  console.error("Unhandled error:", err);
+  if (res.headersSent) {
+    return next(err);
+  }
+  const status = err.status || 500;
+  const message = err.message || "Internal server error";
+  res.status(status).json({ error: message });
+});
+
 app.listen(port, () => {
   console.log(`Server is listening port ${port}`);
 });

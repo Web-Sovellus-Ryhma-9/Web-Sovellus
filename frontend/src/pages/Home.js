@@ -5,6 +5,7 @@ import "./styles/pagestyles.css";
 import "./styles/Home.css";
 
 const TMDB_IMAGE = "https://image.tmdb.org/t/p/w300";
+const API_BASE = process.env.REACT_APP_API_URL || "";
 
 export default function Home() {
   const [movies, setMovies] = useState([]);
@@ -15,7 +16,8 @@ export default function Home() {
     const fetchNowPlaying = async () => {
       try {
         setLoading(true);
-        const res = await fetch("http://localhost:3001/tmdb/now_playing?page=1&region=FI");
+        const url = `${API_BASE}/tmdb/now_playing?page=1&region=FI`;
+        const res = await fetch(url);
         if (!res.ok) throw new Error(`Fetch failed: ${res.status}`);
         const data = await res.json();
         setMovies((data.results || []).slice(0, 35));
