@@ -1,6 +1,7 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { createAccount, findByUsername, findByEmail, findByUsernameOrEmail, deleteAccountById, updateAvatar, findById } from "../models/account_model.js";
+import { deleteReviewsByAccountId } from "../models/review_model.js";
 
 const JWT_SECRET = process.env.JWT_SECRET || "dev_jwt_secret";
 const ALLOWED_AVATARS = [
@@ -78,6 +79,9 @@ export async function deleteAccount(req, res, next) {
 
     const account_id = decoded.account_id;
     if (!account_id) return res.status(400).json({ error: "Invalid token payload" });
+
+    // Clean up dependent data first to avoid orphaned ratings
+    await deleteReviewsByAccountId(account_id);
 
     const deleted = await deleteAccountById(account_id);
     if (!deleted) return res.status(404).json({ error: "Account not found" });
