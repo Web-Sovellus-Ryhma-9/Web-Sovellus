@@ -26,6 +26,10 @@ export default function CreateGroup() {
       setError("You must give a group name.");
       return;
     }
+    if (name.trim().length > 20) {
+      setError("Group name cannot exceed 20 characters.");
+      return;
+    }
 
     setSubmitting(true);
     setError(null);

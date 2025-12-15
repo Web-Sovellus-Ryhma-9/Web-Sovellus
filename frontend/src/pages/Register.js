@@ -22,6 +22,21 @@ export default function Register() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (formData.username.length < 3) {
+      setModalContent({ title: "Registration Error", message: "Username should be atleast 3 characters long." });
+      setShowModal(true);
+      return;
+    }
+    if (formData.password.length < 8) {
+      setModalContent({ title: "Registration Error", message: "Password should be atleast 8 characters long." });
+      setShowModal(true);
+      return;
+    }
+    if (formData.email.length < 8) {
+      setModalContent({ title: "Registration Error", message: "Email not valid." });
+      setShowModal(true);
+      return;
+    }
     if (formData.password !== formData.confirmPassword) {
       setModalContent({ title: "Registration Error", message: "Passwords do not match." });
       setShowModal(true);
