@@ -51,13 +51,11 @@ export default function HandleGroup() {
           setIsOwner(Number(g.role_status) === 1);
         }
 
-        // fetch members for this group
         try {
           const membersUrl = `${API_BASE}/groups/members/${groupId}`;
           const mres = await fetch(membersUrl, { method: "GET", headers });
           if (mres.ok) {
             const mrows = await mres.json().catch(() => []);
-            // backend returns rows with account_id, username, role_status, member_id
             setMembers(Array.isArray(mrows) ? mrows : []);
           } else {
             console.warn("[HandleGroup] failed to fetch members", mres.status);
@@ -121,7 +119,6 @@ export default function HandleGroup() {
         alert(data.error || data.message || `Failed to approve (status ${res.status})`);
         return;
       }
-      // update local member role_status -> 2
       setMembers(prev => prev.map(m => (m.account_id === member.account_id ? { ...m, role_status: 2 } : m)));
     } catch (err) {
       console.error("[HandleGroup] approve error:", err);
@@ -130,14 +127,11 @@ export default function HandleGroup() {
   }
 
   async function handleReject(member) {
-    // remove from UI immediately
     setMembers(prev => prev.filter(m => m.account_id !== member.account_id));
-    // try to delete on server if a delete endpoint exists (best-effort)
     try {
       const token = localStorage.getItem("token");
       const groupId = params.groupId || params.id;
       if (!groupId || !member) return;
-      // try DELETE by member_id (if backend exposes it)
       const deleteUrl = `${API_BASE}/groups/members/${member.member_id || member.account_id}`;
       const headers = {
         "Content-Type": "application/json",
@@ -145,7 +139,6 @@ export default function HandleGroup() {
       };
       await fetch(deleteUrl, { method: "DELETE", headers }).catch(() => null);
     } catch (e) {
-      // ignore
     }
   }
 
@@ -179,7 +172,6 @@ export default function HandleGroup() {
           alert(data.error || `Failed to rename group (status ${res.status})`);
           return;
         }
-        // success: update UI
         setGroupName(value);
         setShowRename(false);
       } catch (err) {
@@ -298,7 +290,6 @@ export default function HandleGroup() {
                                   alert(body.error || `Failed to remove member (status ${res.status})`);
                                   return;
                                 }
-                                // remove from UI
                                 setMembers(prev => prev.filter(x => (x.member_id || x.account_id) !== (m.member_id || m.account_id)));
                               } catch (err) {
                                 console.error('[HandleGroup] remove member error', err);

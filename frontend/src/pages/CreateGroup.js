@@ -71,7 +71,7 @@ export default function CreateGroup() {
           <label className="label">
             Group name
             <input
-              className="auth-input"     // was: input-field
+              className="auth-input"
               value={name}
               onChange={(e) => setName(e.target.value)}
               disabled={submitting}
@@ -82,7 +82,7 @@ export default function CreateGroup() {
           <label className="label">
             Description (optional)
             <textarea
-              className="auth-textarea"  // was: textarea-field
+              className="auth-textarea"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               disabled={submitting}

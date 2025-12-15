@@ -58,7 +58,6 @@ export default function SpecificMovie() {
   const [credits, setCredits] = useState([]);
   const navigate = useNavigate();
 
-  // review form
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState("");
   const [submittingReview, setSubmittingReview] = useState(false);
@@ -71,7 +70,6 @@ export default function SpecificMovie() {
         const res = await fetch(`${API_BASE}/tmdb/${mediaType}/${encodeURIComponent(id)}`);
         if (!res.ok) throw new Error("tmdb fetch failed");
         const json = await res.json();
-        // map TMDB response to a generic media shape while keeping raw data
         const mapped = {
           id: json.id,
           title: json.title || json.name || `Media ${id}`,
@@ -80,7 +78,6 @@ export default function SpecificMovie() {
           tmdb: json,
         };
         if (!cancelled) setMovie(mapped);
-        // fetch credits for this media using TMDB id
         try {
           const mediaIdForCredits = json.id || id;
           const cRes = await fetch(`${API_BASE}/tmdb/${mediaType}/${encodeURIComponent(mediaIdForCredits)}/credits`);
@@ -94,7 +91,6 @@ export default function SpecificMovie() {
           if (!cancelled) setCredits([]);
         }
       } catch (e) {
-        // fallback mock
         if (!cancelled)
           setMovie({
             id,
@@ -105,12 +101,10 @@ export default function SpecificMovie() {
           });
       }
 
-      // load reviews (use API_BASE for consistency and map server fields)
       try {
         const r = await fetch(`${API_BASE}/movies/${id}/reviews`);
         if (!r.ok) throw new Error("no reviews api");
         const rev = await r.json();
-        // map server shape { id/ review_id, username, created_at, avatar } -> { id, rating, comment, user, date, account_id, avatar }
         const mapped = (rev || []).map(item => ({
           id: item.id || item.review_id,
           rating: item.rating,
@@ -126,14 +120,12 @@ export default function SpecificMovie() {
         if (!cancelled) setReviews(local);
       }
 
-      // load favorites: prefer server-side per-account favourites when logged in
       const token = localStorage.getItem("token");
       if (token) {
         try {
           const rf = await fetch(`${API_BASE}/favorites`, { headers: { Authorization: `Bearer ${token}` } });
           if (rf.ok) {
             const favJson = await rf.json();
-            // map server shape to include mediaType (movie/tv)
             const fav = (favJson || []).map(f => {
               let mediaType = 'movie';
               let mediaId = f.movie_id ?? f.movieId ?? f.id ?? null;
@@ -149,7 +141,6 @@ export default function SpecificMovie() {
             });
             if (!cancelled) setFavorites(fav);
           } else {
-            // fallback to localStorage
             const fav = JSON.parse(localStorage.getItem("favorites") || "[]");
             if (!cancelled) setFavorites(fav);
           }
@@ -162,7 +153,6 @@ export default function SpecificMovie() {
         if (!cancelled) setFavorites(fav);
       }
 
-      // load local groups (created by user)
       const lg = JSON.parse(localStorage.getItem("localGroups") || "[]");
       if (!cancelled) setLocalGroups(lg);
 
@@ -175,7 +165,6 @@ export default function SpecificMovie() {
     };
   }, [id]);
 
-  // load server groups for dropdown (so user can add movie to a real group)
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -186,13 +175,11 @@ export default function SpecificMovie() {
         const j = await res.json();
         if (!cancelled) setServerGroups(Array.isArray(j) ? j : []);
       } catch (e) {
-        // ignore
       }
     })();
     return () => { cancelled = true; };
   }, []);
 
-  // keep loggedIn state in sync with localStorage (helps if user logs in/out in another tab)
   useEffect(() => {
     function onStorage(e) {
       if (e.key === 'token') setLoggedIn(!!e.newValue);
@@ -201,7 +188,6 @@ export default function SpecificMovie() {
     return () => window.removeEventListener('storage', onStorage);
   }, []);
 
-  // load account info from localStorage
   useEffect(() => {
     try {
       const raw = localStorage.getItem('account');
@@ -211,7 +197,6 @@ export default function SpecificMovie() {
     }
   }, []);
 
-  // close group dropdown when clicking outside or pressing Escape
   useEffect(() => {
     function onDocClick(e) {
       if (groupDropdownRef.current && !groupDropdownRef.current.contains(e.target)) {
@@ -239,13 +224,11 @@ export default function SpecificMovie() {
       const next = favorites.filter(f => String(f.id) !== String(id));
       setFavorites(next);
       localStorage.setItem("favorites", JSON.stringify(next));
-      // attempt server delete if logged in
       try {
         const token = localStorage.getItem("token");
         const headers = token ? { Authorization: `Bearer ${token}` } : {};
         await fetch(`${API_BASE}/favorites/${encodeURIComponent(id)}`, { method: "DELETE", headers });
       } catch (e) {
-        // ignore
       }
       return;
     }
@@ -254,14 +237,12 @@ export default function SpecificMovie() {
     const next = [newFav, ...favorites];
     setFavorites(next);
     localStorage.setItem("favorites", JSON.stringify(next));
-    // attempt server add if logged in
     try {
       const token = localStorage.getItem("token");
       const headers = { "Content-Type": "application/json" };
       if (token) headers.Authorization = `Bearer ${token}`;
       await fetch(`${API_BASE}/favorites`, { method: "POST", headers, body: JSON.stringify({ id: String(newFav.id), title: newFav.title, media_type: mediaType }) });
     } catch (e) {
-      // ignore
     }
   }
 
@@ -273,11 +254,9 @@ export default function SpecificMovie() {
     }
     setJoining(true);
     try {
-      // if selectedGroup corresponds to a server group id, verify membership
       const sg = serverGroups.find(g => String(g.group_id || g.id) === String(selectedGroup) || String(g.id) === String(selectedGroup));
       const token = localStorage.getItem('token');
       if (sg) {
-        // for server group, post to backend API
         const headers = token ? { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } : { 'Content-Type': 'application/json' };
         const body = JSON.stringify({ group_id: selectedGroup, movie_id: String(id), title: movie?.title || `Movie ${id}`, image: movie?.image || null });
         try {
@@ -303,7 +282,6 @@ export default function SpecificMovie() {
         return;
       }
 
-      // Add movie to group movies in localStorage (local group)
       const key = `groupMovies:${selectedGroup}`;
       const existing = JSON.parse(localStorage.getItem(key) || '[]');
       const movieObj = { id: String(id), title: movie?.title || `Movie ${id}`, image: movie?.image || null, mediaType };
@@ -330,7 +308,6 @@ export default function SpecificMovie() {
     ) || null;
   }, [reviews, account]);
 
-  // when userReview changes, prefill form
   useEffect(() => {
     if (userReview) {
       setRating(Number(userReview.rating) || 5);
@@ -359,7 +336,6 @@ export default function SpecificMovie() {
     try {
       const headers = { "Content-Type": "application/json", Authorization: `Bearer ${token}` };
 
-      // if user already has a review, update it; otherwise create new
       const res = await fetch(`${API_BASE}/movies/${id}/reviews`, {
         method: "POST",
         headers,
@@ -372,7 +348,6 @@ export default function SpecificMovie() {
         throw new Error("review save failed");
       }
 
-      // re-fetch authoritative reviews so usernames/dates are correct
       try {
         const rr = await fetch(`${API_BASE}/movies/${id}/reviews`);
         if (rr.ok) {
@@ -390,7 +365,6 @@ export default function SpecificMovie() {
           localStorage.removeItem(`movieReviews:${id}`);
         }
       } catch (e) {
-        // ignore
       }
     } catch (e) {
       alert('review save failed');
@@ -412,13 +386,11 @@ export default function SpecificMovie() {
     return h > 0 ? `${h}h ${m}min` : `${m}min`;
   }
 
-  // scroll to reviews section (smooth)
   function scrollToReviews() {
     const el = document.getElementById('reviews-section');
     if (el && typeof el.scrollIntoView === 'function') {
       el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     } else {
-      // fallback: scroll to bottom
       window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
     }
   }
@@ -548,7 +520,6 @@ export default function SpecificMovie() {
                     const personId = actor.id;
                     const name = actor.name || '';
                     const go = () => {
-                      // navigate to Search page performing a person search; include person_id for precision
                       const q = encodeURIComponent(name);
                       const path = `/search?search_by=person&person_id=${encodeURIComponent(personId)}&q=${q}&type=all`;
                       navigate(path);
@@ -637,7 +608,6 @@ export default function SpecificMovie() {
                                   const token = localStorage.getItem('token');
                                   const res = await fetch(`${API_BASE}/movies/${id}/reviews`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
                                   if (!res.ok) throw new Error('delete failed');
-                                  // re-fetch reviews
                                   const rr = await fetch(`${API_BASE}/movies/${id}/reviews`);
                                   if (rr.ok) {
                                     const j = await rr.json();

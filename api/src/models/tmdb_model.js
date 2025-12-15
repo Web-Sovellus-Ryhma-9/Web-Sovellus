@@ -9,7 +9,6 @@ function ensureBearer() {
 }
 
 export async function searchMovies(query, page = 1) {
-  // backward-compatible wrapper
   return findMovies({ query, page });
 }
 
@@ -24,10 +23,9 @@ export async function findMovies(options = {}) {
   const page = options.page || 1;
   const yearFrom = options.year_from ? parseInt(options.year_from, 10) : null;
   const yearTo = options.year_to ? parseInt(options.year_to, 10) : null;
-  const with_genres = options.with_genres || options.genre || null; // comma separated ids
-  const with_cast = options.with_cast || null; // person id(s), comma or pipe separated
+  const with_genres = options.with_genres || options.genre || null;
+  const with_cast = options.with_cast || null;
 
-  // If a textual query is provided, use the search endpoint and then apply simple filters server-side
   if (options.query) {
     const url = `${TMDB_BASE}/search/movie`;
     const response = await axios.get(url, {
@@ -36,10 +34,8 @@ export async function findMovies(options = {}) {
     });
 
     let results = response.data.results || [];
-    // mark media type so frontend can distinguish movie/tv
     results = results.map(r => ({ ...r, media_type: 'movie' }));
 
-    // filter by year range if provided
     if (yearFrom || yearTo) {
       results = results.filter((r) => {
         const y = r.release_date ? parseInt(r.release_date.slice(0, 4), 10) : null;
@@ -50,13 +46,11 @@ export async function findMovies(options = {}) {
       });
     }
 
-    // filter by genre ids if provided
     if (with_genres) {
       const ids = ("" + with_genres).split(",").map((v) => parseInt(v, 10));
       results = results.filter((r) => Array.isArray(r.genre_ids) && ids.every((id) => r.genre_ids.includes(id)));
     }
 
-    // Return a similar shape to TMDB search response
     return {
       page: response.data.page || page,
       results,
@@ -65,7 +59,6 @@ export async function findMovies(options = {}) {
     };
   }
 
-  // No textual query: use discover endpoint with filters
   const url = `${TMDB_BASE}/discover/movie`;
   const params = {
     include_adult: false,
@@ -87,9 +80,7 @@ export async function findMovies(options = {}) {
   }
 
   const response = await axios.get(url, { params, headers });
-  // If caller requested additional filtering (safety net), apply it server-side
   let data = response.data;
-  // mark media type for discover results
   if (data && Array.isArray(data.results)) {
     data.results = data.results.map(r => ({ ...r, media_type: 'movie' }));
   }
@@ -114,9 +105,6 @@ export async function findMovies(options = {}) {
     data = {
       ...data,
       results,
-      // Keep TMDB's total_pages (so frontend can request subsequent pages).
-      // total_results becomes the filtered count for this page, but pagination
-      // will still use TMDB's total_pages value.
       total_results: results.length,
       total_pages: data.total_pages || null
     };
@@ -147,11 +135,8 @@ export async function findTv(options = {}) {
     });
 
     let results = response.data.results || [];
-
-    // mark media type
     results = results.map(r => ({ ...r, media_type: 'tv' }));
 
-    // filter by year range if provided (use first_air_date)
     if (yearFrom || yearTo) {
       results = results.filter((r) => {
         const y = r.first_air_date ? parseInt(r.first_air_date.slice(0, 4), 10) : null;
@@ -308,7 +293,7 @@ export async function getPersonMovieCredits(personId) {
     Authorization: `Bearer ${process.env.TMDB_BEARER}`,
   };
   const response = await axios.get(url, { params: { language: "en-US" }, headers });
-  return response.data; // contains `cast` and `crew`
+  return response.data;
 }
 
 export async function getPersonTvCredits(personId) {
@@ -319,7 +304,7 @@ export async function getPersonTvCredits(personId) {
     Authorization: `Bearer ${process.env.TMDB_BEARER}`,
   };
   const response = await axios.get(url, { params: { language: "en-US" }, headers });
-  return response.data; // contains `cast` and `crew`
+  return response.data;
 }
 
 export async function getMovieCredits(movieId) {
@@ -330,5 +315,5 @@ export async function getMovieCredits(movieId) {
     Authorization: `Bearer ${process.env.TMDB_BEARER}`,
   };
   const response = await axios.get(url, { params: { language: "en-US" }, headers });
-  return response.data; // contains `cast` and `crew`
+  return response.data;
 }

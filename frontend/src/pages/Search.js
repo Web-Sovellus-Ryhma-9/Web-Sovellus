@@ -19,10 +19,9 @@ export default function Search() {
   const [yearTo, setYearTo] = useState(String(new Date().getFullYear()));
   const [genre, setGenre] = useState("");
   const [genresList, setGenresList] = useState([]);
-  const [searchBy, setSearchBy] = useState('title'); // 'title' or 'person'
-  const [searchType, setSearchType] = useState('movie'); // 'movie' | 'tv' | 'all'
+  const [searchBy, setSearchBy] = useState('title');
+  const [searchType, setSearchType] = useState('movie');
 
-  // load available genres from backend
   useEffect(() => {
     let canceled = false;
     (async () => {
@@ -32,13 +31,11 @@ export default function Search() {
         const json = await res.json();
         if (!canceled && json.genres) setGenresList(json.genres);
       } catch (e) {
-        // ignore
       }
     })();
     return () => { canceled = true; };
   }, [API_BASE]);
 
-  // initialize filters from query params
   useEffect(() => {
     const yf = searchParams.get("year_from") || searchParams.get("yearFrom");
     const yt = searchParams.get("year_to") || searchParams.get("yearTo");
@@ -52,18 +49,14 @@ export default function Search() {
     if (st) setSearchType(st);
   }, [searchParams]);
 
-  // persist filters to URL and localStorage when they change
   useEffect(() => {
     const q = searchParams.get("q") || "";
     const params = {};
     if (q) params.q = q;
-    // preserve search_by when set (so changing filters doesn't drop person search)
     const sb = searchParams.get('search_by') || (searchBy || 'title');
     const st = searchParams.get('type') || (searchType || 'movie');
     if (sb && sb !== 'title') params.search_by = sb;
-    // always include type so 'all' is honored by backend
     if (st) params.type = st;
-    // sanitize years (remove leading zeros and invalid values)
     const yfNum = yearFrom ? parseInt(yearFrom, 10) : NaN;
     const ytNum = yearTo ? parseInt(yearTo, 10) : NaN;
     if (!isNaN(yfNum)) params.year_from = String(yfNum);
@@ -71,7 +64,6 @@ export default function Search() {
     if (genre) params.with_genres = genre;
     setSearchParams(params, { replace: true });
 
-    // store for Header to reuse
     try {
       const store = {};
       if (!isNaN(yfNum)) store.year_from = String(yfNum);
@@ -92,8 +84,6 @@ export default function Search() {
     const yf = yfRaw ? parseInt(yfRaw, 10) : null;
     const yt = ytRaw ? parseInt(ytRaw, 10) : null;
 
-    // always fetch: let backend decide (discover when no textual query)
-
     let cancelled = false;
     (async () => {
       setLoading(true);
@@ -108,12 +98,10 @@ export default function Search() {
         const url = (sb === 'person')
           ? `${API_BASE}/tmdb/person_movies?${paramString}`
           : (paramString ? `${API_BASE}/tmdb/search?${paramString}${st ? `&type=${encodeURIComponent(st)}` : ''}` : `${API_BASE}/tmdb/search${st ? `?type=${encodeURIComponent(st)}` : ''}`);
-        // debug log
         console.log('Fetching TMDB with URL:', url);
         const res = await fetch(url);
         const json = await res.json();
         if (!cancelled) {
-          // person_movies now proxies discover and returns a search/discover-style response
           setResults(json.results || []);
           setPage(json.page || 1);
           setTotalPages(json.total_pages || null);

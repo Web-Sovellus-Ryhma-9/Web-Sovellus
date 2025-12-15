@@ -29,8 +29,6 @@ export async function getFavorites(req, res, next) {
     if (!account_id) return res.status(401).json({ error: "Unauthorized" });
 
     const rows = await getFavoritesByAccount(account_id);
-    // include list metadata so frontend can generate share links
-    // Try to detect media type (movie/tv) for each saved id by querying TMDB proxy
     const items = await Promise.all(rows.map(async (r) => {
       const id = r.movie_id;
       let media_type = 'movie';
@@ -61,15 +59,12 @@ export async function addFavorite(req, res, next) {
     const { id: movie_id, title } = req.body;
     if (!movie_id) return res.status(400).json({ error: "Missing movie id" });
 
-    // ensure default list exists for this account
     const list = await getOrCreateDefaultListForAccount(account_id);
 
-    // avoid duplicate
     const existing = await findFavoriteByAccountAndMovie(account_id, movie_id);
     if (existing) return res.status(409).json({ error: "Already favourited" });
 
     const added = await addFavoriteToList(list.favourite_id, String(movie_id), title || null);
-    // debug log
     console.log(`FAV ADD: account_id=${account_id} favourite_id=${list.favourite_id} movie_id=${movie_id}`);
     res.status(201).json({ message: "Added to favourites", favourite: added });
   } catch (err) {
@@ -87,7 +82,6 @@ export async function deleteFavorite(req, res, next) {
 
     const list = await getOrCreateDefaultListForAccount(account_id);
     const removed = await removeFavoriteFromList(list.favourite_id, String(movie_id));
-    // debug log
     console.log(`FAV DEL: account_id=${account_id} favourite_id=${list.favourite_id} movie_id=${movie_id} removed=${!!removed}`);
     if (!removed) return res.status(404).json({ error: "Favourite not found" });
     res.json({ message: "Removed from favourites" });
@@ -95,11 +89,8 @@ export async function deleteFavorite(req, res, next) {
     next(err);
   }
 }
-
-// Debug: return all favourite items (no auth) — useful during development to inspect DB
 export async function debugAllFavorites(req, res, next) {
   try {
-    // lazy import to avoid circular issues
     const pool = (await import("../database.js")).default;
     const sql = `SELECT fi.id, fl.favourite_id, fl.account_id, fl.Movielist, fi.movie_id, fi.title FROM favourite_items fi JOIN favouritelist fl ON fi.favourite_id = fl.favourite_id ORDER BY fi.id DESC`;
     const { rows } = await pool.query(sql);
@@ -108,8 +99,6 @@ export async function debugAllFavorites(req, res, next) {
     next(err);
   }
 }
-
-// Public endpoint to fetch a favourite list by its id (no auth) for sharing
 export async function getPublicList(req, res, next) {
   try {
     const favourite_id = req.params.id;

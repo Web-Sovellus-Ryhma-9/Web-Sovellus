@@ -1,4 +1,3 @@
-/* SpecificMovie page */
 .movie-container {
   max-width: 1000px;
   margin: 2rem auto;
@@ -26,7 +25,6 @@
   position: relative;
 }
 
-/* Placeholder inside the specific movie poster box */
 .movie-poster .movie-placeholder {
   width: 100%;
   height: 100%;
@@ -48,11 +46,11 @@
 .group-select {
   display: inline-flex;
   align-items: center;
-  width: auto; /* size to content by default */
+  width: auto;
   max-width: none;
-  padding: 10px 12px; /* auth-input padding */
-  border-radius: 999px; /* pill shape like .auth-input */
-  background: #111; /* auth-like dark box */
+  padding: 10px 12px;
+  border-radius: 999px;
+  background: #111;
   color: var(--text-color);
   border: 1px solid var(--accent-color);
   font-size: 0.95rem;
@@ -62,7 +60,7 @@
   -webkit-appearance: none;
   -moz-appearance: none;
   -webkit-tap-highlight-color: transparent;
-  accent-color: #111; /* neutralize default blue accents in modern browsers */
+  accent-color: #111;
   cursor: pointer;
 }
 
@@ -118,7 +116,6 @@
   margin-top: 0;
 }
 
-/* meta row under title */
 .movie-meta {
   color: #666;
   margin-bottom: 8px;
@@ -129,7 +126,7 @@
 }
 
 .movie-description {
-  color: #b0b0b0; /* darker for higher contrast / appears brighter to the eye */
+  color: #b0b0b0;
   font-size: 1rem;
   line-height: 1.6;
 }
@@ -142,13 +139,11 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
-/* genres row */
 .movie-genres {
   margin-top: 6px;
   color: #b0b0b0;
 }
 
-/* cast section */
 .movie-cast-section {
   margin-top: 12px;
   color: #b0b0b0;
@@ -180,7 +175,6 @@
   color: #b0b0b0;
 }
 
-/* Stars */
 .star {
   font-size: 22px;
   margin-right: 2px;
@@ -196,7 +190,6 @@
   cursor: pointer;
 }
 
-/* small helpers */
 .login-hint {
   margin-top: 6px;
 }
@@ -225,7 +218,6 @@
   margin-top: 24px;
 }
 
-/* Reviews */
 .review-form {
   display: grid;
   gap: 8px;
@@ -291,14 +283,13 @@
   color: #b0b0b0;
 }
 
-/* Ensure comment input / textarea uses the same muted color */
 .review-form textarea,
 .review-form input[type="text"] {
   width: 100%;
-  padding: 10px 12px; /* auth-textarea/auth-input padding */
-  border-radius: 10px; /* textarea style */
+  padding: 10px 12px;
+  border-radius: 10px;
   border: 1px solid var(--accent-color);
-  background: #111; /* auth-like dark box */
+  background: #111;
   color: var(--text-muted);
   font-size: 0.95rem;
   outline: none;
@@ -316,4 +307,119 @@
   margin-top: 6px;
   color: #888;
   font-size: 12px;
+}
+
+/* Mobile Responsivity */
+@media (max-width: 768px) {
+  .movie-container {
+    padding: 0 0.75rem;
+  }
+  
+  .movie-grid {
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .movie-sidebar {
+    width: 100%;
+  }
+  
+  .specificmovie-poster {
+    max-width: 100%;
+    width: 100%;
+  }
+  
+  .movie-poster {
+    width: 100%;
+    max-width: 400px;
+    height: auto;
+    aspect-ratio: 2/3;
+    margin: 0 auto;
+  }
+  
+  .movie-main {
+    width: 100%;
+  }
+  
+  .movie-actions {
+    margin-top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .movie-actions .btn {
+    margin-right: 0;
+    width: 100%;
+  }
+  
+  .group-select-wrapper {
+    width: 100%;
+    display: block;
+  }
+  
+  .group-select {
+    width: 100%;
+    max-width: none;
+  }
+  
+  .movie-add-to-group-button {
+    width: 100%;
+  }
+  
+  .review-header {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .review-meta {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+
+@media (max-width: 480px) {
+  .movie-container {
+    margin: 1rem auto;
+    padding: 0 0.5rem;
+  }
+  
+  .movie-poster {
+    max-height: 300px;
+  }
+  
+  .movie-title {
+    font-size: 1.5rem;
+  }
+  
+  .movie-meta {
+    font-size: 0.9rem;
+  }
+  
+  .cast-names {
+    gap: 6px;
+  }
+  
+  .cast-pill {
+    padding: 4px 8px;
+    font-size: 12px;
+  }
+  
+  .review-form {
+    gap: 6px;
+  }
+  
+  .review-form textarea,
+  .review-form input[type="text"] {
+    min-height: 80px;
+    font-size: 14px;
+  }
+  
+  .star {
+    font-size: 18px;
+  }
+  
+  .rating-value-inline {
+    font-size: 14px;
+  }
 }

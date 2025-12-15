@@ -48,9 +48,7 @@ export default function Profile() {
           const res = await fetch(`${API}/favorites`, { headers: { Authorization: `Bearer ${token}` } });
           if (!res.ok) throw new Error("no api");
           const data = await res.json();
-          // map server favorites robustly and detect media type (movie/tv)
           let mapped = (data || []).map(f => {
-            // determine id and media type from common server fields
             let mediaType = 'movie';
             let mediaId = f.movie_id ?? f.movieId ?? f.id ?? null;
             if ((f.tv_id ?? f.tvId) != null) {
@@ -70,7 +68,6 @@ export default function Profile() {
             };
           });
 
-          // fetch thumbnails (TMDB proxy) in parallel using the detected media type
           try {
             const thumbs = await Promise.all(
               mapped.map(async (m) => {
@@ -87,17 +84,14 @@ export default function Profile() {
             );
             mapped = thumbs;
           } catch (e) {
-            // ignore thumbnail errors
           }
 
           if (!cancelled) setFavorites(mapped);
         } else {
-          // anonymous fallback
           const local = JSON.parse(localStorage.getItem("favorites") || "[]");
           if (!cancelled) setFavorites(local);
         }
       } catch (e) {
-        // fallback to localStorage
         if (!cancelled) {
           const local = JSON.parse(localStorage.getItem("favorites") || "[]");
           setFavorites(local);
@@ -119,7 +113,6 @@ export default function Profile() {
       try {
         const res = await fetch(`${API}/favorites/${encodeURIComponent(id)}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
         if (!res.ok) throw new Error("delete failed");
-        // update UI and localStorage
         setFavorites(prev => {
           const next = prev.filter(f => f.id !== id);
           localStorage.setItem("favorites", JSON.stringify(next));
@@ -136,14 +129,12 @@ export default function Profile() {
       }
     }
 
-    // anonymous/local case — remove from localStorage and update UI
     const local = JSON.parse(localStorage.getItem("favorites") || "[]").filter(f => f.id !== id);
     localStorage.setItem("favorites", JSON.stringify(local));
     setFavorites(local);
   }
 
   function deleteAccount() {
-    // show confirmation modal instead of native confirm()
     setShowConfirmDelete(true);
   }
 
@@ -157,7 +148,6 @@ export default function Profile() {
 
       const res = await fetch(`${API}/auth`, { method: "DELETE", headers });
       if (res.ok) {
-        // clear client data and navigate home
         localStorage.removeItem("favorites");
         localStorage.removeItem("localGroups");
         localStorage.removeItem("account");
@@ -167,7 +157,6 @@ export default function Profile() {
         setTimeout(() => navigate("/"), 1800);
         return;
       }
-      // try to report server error details when possible
       let errMsg = "server error";
       try {
         const data = await res.json();
@@ -175,7 +164,6 @@ export default function Profile() {
       } catch (e) { }
       throw new Error(errMsg);
     } catch (e) {
-      // fallback behaviour: clear local data
       localStorage.removeItem("favorites");
       localStorage.removeItem("localGroups");
       localStorage.removeItem("account");
@@ -273,7 +261,6 @@ export default function Profile() {
 
             <div className="profile-main">
             <h3>My Favorites</h3>
-            {/* Copy-link moved to sidebar; no inline copy button needed here */}
             {loading ? (
               <p>Loading favorites…</p>
             ) : favorites.length === 0 ? (

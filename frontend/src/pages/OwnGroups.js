@@ -10,7 +10,7 @@ export default function OwnGroups() {
   const navigate = useNavigate();
 
   const API_BASE = process.env.REACT_APP_API_URL || "";
-  const TEST_MODE = false; // set true to use local TEST_GROUPS
+  const TEST_MODE = false;
   const TEST_GROUPS = [
     { group_id: 1, group_name: "Demo group 1", description: "Description 1", image: null },
     { group_id: 2, group_name: "Demo group 2", description: "Description 2", image: null },
@@ -36,7 +36,6 @@ export default function OwnGroups() {
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         };
 
-        // Use public endpoint that returns role_status for the requesting user
         const url = `${API_BASE || ""}/groups/getGroups`;
         console.debug("OwnGroups: fetching", url, "hasToken:", !!token);
         const res = await fetch(url, { headers });
@@ -56,12 +55,10 @@ export default function OwnGroups() {
           return;
         }
         const data = await res.json();
-        // filter groups where the requesting user is the owner or a member (role_status === 1 or 2)
         const currentAccountId = Number(JSON.parse(localStorage.getItem('account') || '{}').account_id || 0);
         const mine = (data || []).filter(g => {
           const rs = Number(g.role_status || 0);
           if (rs === 1 || rs === 2) return true;
-          // fallback: include if this group was created by current user
           if (Number(g.account_id) === currentAccountId && currentAccountId > 0) return true;
           return false;
         });

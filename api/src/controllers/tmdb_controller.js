@@ -2,7 +2,6 @@ import { findMovies, findTv, getMovieDetails, getTvDetails, nowPlaying, getGenre
 
 export async function search(req, res, next) {
   try {
-    // debug: log incoming query params to help diagnose filter issues
     console.log('TMDB /search called with query:', req.query);
     const q = req.query.q || req.query.query || null;
     const page = req.query.page || 1;
@@ -13,7 +12,6 @@ export async function search(req, res, next) {
       year_to: req.query.year_to || req.query.yearTo || null,
       with_genres: req.query.with_genres || req.query.genre || req.query.genres || null,
     };
-      // allow calling without query to discover by filters
       const type = (req.query.type || req.query.search_type || 'movie');
       if (type === 'tv') {
         const data = await findTv(opts);
@@ -22,7 +20,6 @@ export async function search(req, res, next) {
       }
 
       if (type === 'all') {
-        // run both movie and tv searches and merge results (simple merge, page 1)
         const [movies, tvs] = await Promise.all([findMovies(opts), findTv(opts)]);
         const results = [];
         const seen = new Set();
@@ -102,7 +99,6 @@ export async function person_movies(req, res, next) {
       id = person.id;
     }
 
-    // Get person's acting credits (cast only) for movies and TV
     const movieCredits = await getPersonMovieCredits(id);
     const tvCredits = await getPersonTvCredits(id);
 
@@ -118,7 +114,6 @@ export async function person_movies(req, res, next) {
       results = results.concat(tvCredits.cast.map((t) => ({ ...t, media_type: 'tv' })));
     }
 
-    // filter by year (use release_date for movies, first_air_date for tv)
     if (yearFrom || yearTo) {
       results = results.filter((r) => {
         const yStr = r.media_type === 'tv' ? r.first_air_date : r.release_date;
@@ -130,13 +125,11 @@ export async function person_movies(req, res, next) {
       });
     }
 
-    // filter by genre ids if available on credit items
     if (with_genres) {
       const ids = ("" + with_genres).split(",").map((v) => parseInt(v, 10));
       results = results.filter((r) => Array.isArray(r.genre_ids) && ids.every((id) => r.genre_ids.includes(id)));
     }
 
-    // Deduplicate (same id may appear in both movie and tv arrays unlikely but safe)
     const seen = new Set();
     results = results.filter((r) => {
       const key = `${r.media_type}:${r.id}`;
@@ -145,7 +138,6 @@ export async function person_movies(req, res, next) {
       return true;
     });
 
-    // sort by popularity/date where available (most recent/popular first)
     results.sort((a, b) => {
       const popA = a.popularity || 0; const popB = b.popularity || 0;
       if (popA !== popB) return popB - popA;

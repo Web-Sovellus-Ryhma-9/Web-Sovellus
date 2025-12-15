@@ -29,7 +29,6 @@ app.use("/auth", accountRouter);
 app.use("/groups", groupListRouter);
 app.use("/favorites", favouriteRouter);
 app.use("/movies", reviewsRouter);
-// Note: `/book` routes are not mounted because `book` table was removed from the DB schema
 
 app.listen(port, () => {
   console.log(`Server is listening port ${port}`);

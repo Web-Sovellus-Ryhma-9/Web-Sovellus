@@ -31,21 +31,18 @@ export default function Home() {
 
   const navigate = useNavigate();
 
-  // We'll auto-scroll the wrapper's scrollLeft for a smooth, pausable loop.
   const wrapperRef = useRef(null);
   const trackRef = useRef(null);
   const [trackWidth, setTrackWidth] = useState(0);
   const rafId = useRef(null);
   const lastTs = useRef(null);
   const [isPaused, setIsPaused] = useState(false);
-  // scrolling speed in pixels per second
   const speedPxPerSec = 80;
 
   useEffect(() => {
     const measure = () => {
       const t = trackRef.current;
       if (!t) return;
-      // each duplicated copy is half the scrollWidth
       const w = t.scrollWidth / 2 || 0;
       setTrackWidth(w);
     };
@@ -54,7 +51,6 @@ export default function Home() {
     return () => window.removeEventListener("resize", measure);
   }, [movies]);
 
-  // RAF-based auto-scroll. Uses wrapper.scrollLeft so pausing + manual scroll integrates smoothly.
   useEffect(() => {
     const wrapper = wrapperRef.current;
     if (!wrapper || trackWidth === 0) return;
@@ -63,9 +59,7 @@ export default function Home() {
       if (lastTs.current == null) lastTs.current = ts;
       const dt = (ts - lastTs.current) / 1000;
       lastTs.current = ts;
-      // advance scroll
       wrapper.scrollLeft += speedPxPerSec * dt;
-      // loop when we've scrolled past one copy
       if (wrapper.scrollLeft >= trackWidth) {
         wrapper.scrollLeft -= trackWidth;
       }
@@ -73,7 +67,6 @@ export default function Home() {
     };
 
     if (!isPaused) {
-      // ensure overflow hidden while animating
       wrapper.style.overflowX = "hidden";
       lastTs.current = null;
       rafId.current = requestAnimationFrame(step);
@@ -85,14 +78,12 @@ export default function Home() {
     };
   }, [isPaused, trackWidth]);
 
-  // Pause on hover and allow manual scrolling only via mouse wheel while paused
   useEffect(() => {
     const wrapper = wrapperRef.current;
     if (!wrapper) return;
 
     const onMouseEnter = () => {
       setIsPaused(true);
-      // allow horizontal scrolling while paused
       wrapper.style.overflowX = "auto";
       wrapper.style.cursor = "default";
     };
@@ -103,10 +94,8 @@ export default function Home() {
     };
 
     const onWheel = (e) => {
-      // Only intercept wheel when paused and there is horizontal overflow
       if (!isPaused) return;
       if (wrapper.scrollWidth <= wrapper.clientWidth) return;
-      // Prevent page vertical scroll while over the carousel
       e.preventDefault();
       const delta = e.deltaY || e.deltaX;
       const factor = 1.2;
@@ -116,7 +105,6 @@ export default function Home() {
     wrapper.addEventListener("mouseenter", onMouseEnter);
     wrapper.addEventListener("mouseleave", onMouseLeave);
     wrapper.addEventListener("wheel", onWheel, { passive: false });
-    // touch: pause while user is touching the screen so they can swipe to scroll
     const onTouchStart = () => {
       setIsPaused(true);
       wrapper.style.overflowX = "auto";
