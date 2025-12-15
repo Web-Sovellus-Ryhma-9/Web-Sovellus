@@ -55,3 +55,9 @@ export async function updateReviewByAccountAndMovie(account_id, movie_id, rating
   const { rows } = await pool.query(sql, [account_id, String(movie_id), rating, comment || null]);
   return rows[0];
 }
+
+export async function deleteReviewsByAccountId(account_id) {
+  // Remove all reviews authored by the account being deleted
+  const sql = `DELETE FROM reviews WHERE account_id = $1`;
+  await pool.query(sql, [account_id]);
+}
