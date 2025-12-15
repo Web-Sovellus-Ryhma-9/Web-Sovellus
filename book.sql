@@ -1,3 +1,10 @@
+-- Drop tables in dependency order (children first, then parents)
+DROP TABLE IF EXISTS group_movies;
+DROP TABLE IF EXISTS group_members;
+DROP TABLE IF EXISTS reviews;
+DROP TABLE IF EXISTS favourite_items;
+DROP TABLE IF EXISTS favouritelist;
+DROP TABLE IF EXISTS grouplist;
 DROP TABLE IF EXISTS account;
 
 CREATE TABLE IF NOT EXISTS account (
@@ -8,8 +15,6 @@ CREATE TABLE IF NOT EXISTS account (
   password_hash TEXT NOT NULL
 );
 
- 
-DROP TABLE IF EXISTS groupList;
 CREATE TABLE IF NOT EXISTS groupList (
   group_id   SERIAL PRIMARY KEY,
   account_id INTEGER NOT NULL REFERENCES account(account_id) ON DELETE CASCADE,
@@ -21,7 +26,6 @@ CREATE TABLE IF NOT EXISTS groupList (
 
 -- FavouriteList table: stores per-account favourite lists
 -- Use lowercase table name so Postgres unquoted identifiers match
-DROP TABLE IF EXISTS favouritelist;
 CREATE TABLE IF NOT EXISTS favouritelist (
   favourite_id SERIAL PRIMARY KEY,
   account_id INT NOT NULL,
@@ -30,7 +34,6 @@ CREATE TABLE IF NOT EXISTS favouritelist (
 );
 
 -- Items belonging to FavouriteList (map favourite list -> movie)
-DROP TABLE IF EXISTS favourite_items;
 CREATE TABLE IF NOT EXISTS favourite_items (
   id SERIAL PRIMARY KEY,
   favourite_id INT NOT NULL,
@@ -41,7 +44,6 @@ CREATE TABLE IF NOT EXISTS favourite_items (
 );
 
 -- Reviews table: store movie reviews so that users can post and others can read them
-DROP TABLE IF EXISTS reviews;
 CREATE TABLE IF NOT EXISTS reviews (
   review_id SERIAL PRIMARY KEY,
   movie_id VARCHAR(255) NOT NULL,
@@ -53,7 +55,6 @@ CREATE TABLE IF NOT EXISTS reviews (
   CONSTRAINT fk_review_account FOREIGN KEY (account_id) REFERENCES account(account_id) ON DELETE SET NULL
 );
 
-DROP TABLE IF EXISTS group_members;
 CREATE TABLE IF NOT EXISTS group_members (
   member_id SERIAL PRIMARY KEY,
   group_id INTEGER NOT NULL REFERENCES groupList(group_id) ON DELETE CASCADE,
@@ -64,7 +65,6 @@ CREATE TABLE IF NOT EXISTS group_members (
 );
 
 -- Movies added to groups (one movie can appear in many groups)
-DROP TABLE IF EXISTS group_movies;
 CREATE TABLE IF NOT EXISTS group_movies (
   id SERIAL PRIMARY KEY,
   group_id INTEGER NOT NULL REFERENCES groupList(group_id) ON DELETE CASCADE,
