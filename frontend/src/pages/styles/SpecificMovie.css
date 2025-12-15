@@ -46,8 +46,68 @@
 }
 
 .group-select {
-  width: 100%;
-  padding: 6px;
+  display: inline-flex;
+  align-items: center;
+  width: auto; /* size to content by default */
+  max-width: none;
+  padding: 10px 12px; /* auth-input padding */
+  border-radius: 999px; /* pill shape like .auth-input */
+  background: #111; /* auth-like dark box */
+  color: var(--text-color);
+  border: 1px solid var(--accent-color);
+  font-size: 0.95rem;
+  outline: none;
+  box-sizing: border-box;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  -webkit-tap-highlight-color: transparent;
+  accent-color: #111; /* neutralize default blue accents in modern browsers */
+  cursor: pointer;
+}
+
+.group-select:focus {
+  color: var(--text-color);
+  outline: none;
+  box-sizing: border-box;
+}
+
+.group-select-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.group-dropdown {
+  position: absolute;
+  left: 0;
+  right: 0;
+  margin-top: 8px;
+  background: #111;
+  border: 1px solid var(--accent-color);
+  border-radius: 8px;
+  max-height: 240px;
+  overflow: auto;
+  z-index: 120;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  padding: 6px 6px;
+}
+
+.group-dropdown-item {
+  padding: 8px 10px;
+  border-radius: 6px;
+  color: var(--text-muted, #b0b0b0);
+  cursor: pointer;
+}
+
+.group-dropdown-item:hover,
+.group-dropdown-item:focus {
+  background: #1a1a1a;
+  color: var(--text-color, #fff);
+  outline: none;
+}
+
+.group-dropdown-item.selected {
+  background: rgba(255,255,255,0.04);
 }
 
 .movie-main {
@@ -69,7 +129,9 @@
 }
 
 .movie-description {
-  color: var(--text-muted);
+  color: #b0b0b0; /* darker for higher contrast / appears brighter to the eye */
+  font-size: 1rem;
+  line-height: 1.6;
 }
 
 .specificmovie-poster {
@@ -83,11 +145,13 @@
 /* genres row */
 .movie-genres {
   margin-top: 6px;
+  color: #b0b0b0;
 }
 
 /* cast section */
 .movie-cast-section {
   margin-top: 12px;
+  color: #b0b0b0;
 }
 
 .cast-names {
@@ -98,7 +162,7 @@
 
 .cast-pill {
   padding: 6px 10px;
-  background: linear-gradient(90deg, #222 0%, #2b2f33 100%);
+  background: #020000;
   border-radius: 6px;
   cursor: pointer;
   display: flex;
@@ -108,7 +172,7 @@
 
 .cast-pill-name {
   font-weight: 600;
-  color: #fff;
+  color: #b0b0b0;
 }
 
 .cast-pill-character {
@@ -173,7 +237,7 @@
 
 .review-item {
   padding: 12px;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid #b0b0b0;
 }
 
 .review-header {
@@ -224,6 +288,28 @@
 
 .review-comment {
   margin-top: 8px;
+  color: #b0b0b0;
+}
+
+/* Ensure comment input / textarea uses the same muted color */
+.review-form textarea,
+.review-form input[type="text"] {
+  width: 100%;
+  padding: 10px 12px; /* auth-textarea/auth-input padding */
+  border-radius: 10px; /* textarea style */
+  border: 1px solid var(--accent-color);
+  background: #111; /* auth-like dark box */
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  outline: none;
+  resize: vertical;
+  min-height: 90px;
+  box-sizing: border-box;
+  font-family: var(--font-family-base, inherit);
+}
+.review-form textarea::placeholder,
+.review-form input::placeholder {
+  color: rgba(176,176,176,0.5);
 }
 
 .review-date {
