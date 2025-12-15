@@ -258,7 +258,7 @@ export default function SpecificMovie() {
       const token = localStorage.getItem('token');
       if (sg) {
         const headers = token ? { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } : { 'Content-Type': 'application/json' };
-        const body = JSON.stringify({ group_id: selectedGroup, movie_id: String(id), title: movie?.title || `Movie ${id}`, image: movie?.image || null });
+        const body = JSON.stringify({ group_id: selectedGroup, movie_id: String(id), title: movie?.title || `Movie ${id}`, image: movie?.image || null, media_type: mediaType });
         try {
           const r = await fetch(`${API_BASE}/groups/movies/add`, { method: 'POST', headers, body });
           if (r.status === 201) {

@@ -86,13 +86,25 @@ function SharedItems({ items, api }) {
         const mapped = await Promise.all(
           items.map(async (it) => {
             try {
-              const res = await fetch(`${api}/tmdb/movie/${encodeURIComponent(it.movie_id)}`);
-              if (!res.ok) return { ...it, image: null };
+              // Decode media_type if it's encoded in movie_id (format: "tv:123" or "movie:456")
+              let movieId = it.movie_id;
+              let mediaType = it.media_type || 'movie';
+              
+              const parts = String(movieId).split(':');
+              if (parts.length === 2 && (parts[0] === 'tv' || parts[0] === 'movie')) {
+                mediaType = parts[0];
+                movieId = parts[1];
+              }
+              
+              // Use the correct TMDB endpoint based on media type
+              const endpoint = mediaType === 'tv' ? 'tv' : 'movie';
+              const res = await fetch(`${api}/tmdb/${endpoint}/${encodeURIComponent(movieId)}`);
+              if (!res.ok) return { ...it, image: null, decoded_id: movieId, media_type: mediaType };
               const j = await res.json();
               const image = j.poster_path ? `https://image.tmdb.org/t/p/w154${j.poster_path}` : null;
-              return { ...it, image };
+              return { ...it, image, decoded_id: movieId, media_type: mediaType };
             } catch (e) {
-              return { ...it, image: null };
+              return { ...it, image: null, decoded_id: it.movie_id, media_type: it.media_type || 'movie' };
             }
           })
         );
@@ -126,7 +138,7 @@ function SharedItems({ items, api }) {
           </div>
           <div className="shared-item-content">
             <Link
-              to={`/movie/${item.movie_id}`}
+              to={`/${item.media_type || 'movie'}/${item.decoded_id || item.movie_id}`}
               className="shared-item-link"
             >
               {item.title || 'Unnamed'}
