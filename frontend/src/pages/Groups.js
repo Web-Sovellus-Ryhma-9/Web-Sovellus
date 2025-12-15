@@ -8,6 +8,8 @@ export default function Groups() {
   const [groups, setGroups] = useState([]);
   const [loading, setLoading] = useState(true);
   const [joinedIds, setJoinedIds] = useState(new Set());
+  const [showDescriptionModal, setShowDescriptionModal] = useState(false);
+  const [selectedDescription, setSelectedDescription] = useState({ title: "", description: "" });
 
   const API_BASE = process.env.REACT_APP_API_URL || "";
   const token = localStorage.getItem("token");
@@ -220,6 +222,11 @@ export default function Groups() {
     }
   }
 
+  function openDescriptionModal(title, description) {
+    setSelectedDescription({ title, description });
+    setShowDescriptionModal(true);
+  }
+
   const displayGroups = groups;
 
   return (
@@ -265,6 +272,14 @@ export default function Groups() {
                       </p>
                     ) : null}
                     <p className="group-description-text">{group.description}</p>
+                    {group.description && group.description.length > 100 && (
+                      <button 
+                        className="read-more-btn"
+                        onClick={() => openDescriptionModal(group.name, group.description)}
+                      >
+                        Read more
+                      </button>
+                    )}
                   </div>
 
                   <div className="group-action">
@@ -299,6 +314,17 @@ export default function Groups() {
           </div>
         )}
       </div>
+      {showDescriptionModal && (
+        <div className="modal-overlay" onClick={() => setShowDescriptionModal(false)}>
+          <div className="modal" role="dialog" aria-modal="true" aria-labelledby="description-modal-title" onClick={(e) => e.stopPropagation()}>
+            <h3 id="description-modal-title">{selectedDescription.title}</h3>
+            <p className="modal-description">{selectedDescription.description}</p>
+            <div className="modal-actions">
+              <button className="btn" onClick={() => setShowDescriptionModal(false)}>Close</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
