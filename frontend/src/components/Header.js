@@ -8,6 +8,7 @@ function Header() {
   const [searchType, setSearchType] = useState('all'); // 'all' | 'movie' | 'tv' | 'person'
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [searchTypeOpen, setSearchTypeOpen] = useState(false);
   const [account, setAccount] = useState(null);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
@@ -15,7 +16,34 @@ function Header() {
   const navigate = useNavigate();
   const timerRef = useRef(null);
   const wrapperRef = useRef(null);
+  const searchTypeRef = useRef(null);
+  const [searchTypeIndex, setSearchTypeIndex] = useState(0);
+  const SEARCH_TYPE_OPTIONS = ['all', 'movie', 'tv', 'person'];
   const API_BASE = process.env.REACT_APP_API_URL || "";
+
+  // close searchType dropdown when clicking outside or pressing Escape
+  useEffect(() => {
+    function onDocClick(e) {
+      if (searchTypeRef.current && !searchTypeRef.current.contains(e.target)) {
+        setSearchTypeOpen(false);
+      }
+    }
+    function onKey(e) {
+      if (e.key === 'Escape') setSearchTypeOpen(false);
+    }
+    document.addEventListener('mousedown', onDocClick);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDocClick);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, []);
+
+  // keep searchTypeIndex in sync when searchType changes
+  useEffect(() => {
+    const idx = SEARCH_TYPE_OPTIONS.indexOf(searchType);
+    setSearchTypeIndex(idx >= 0 ? idx : 0);
+  }, [searchType]);
 
   function resolveAvatarPath(name) {
     if (!name) return null;
@@ -264,14 +292,80 @@ function Header() {
 
       <form className="search-form" onSubmit={onSubmit} role="search" autoComplete="off">
         <div className="search-inner">
-          <label style={{ marginRight: 8 }}>
-            <select value={searchType} onChange={(e) => setSearchType(e.target.value)}>
-              <option value="all">All</option>
-              <option value="movie">Movies</option>
-              <option value="tv">TV-series</option>
-              <option value="person">Celebrities</option>
-            </select>
-          </label>
+          <div
+            className="search-type-wrapper"
+            style={{ marginRight: 8 }}
+            ref={searchTypeRef}
+            onKeyDown={(e) => {
+              // handle arrow navigation and selection when dropdown open
+              if (!searchTypeOpen) return;
+              const items = Array.from(searchTypeRef.current.querySelectorAll('.search-type-item'));
+              if (!items || items.length === 0) return;
+              if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+                e.preventDefault();
+                let next = searchTypeIndex;
+                if (e.key === 'ArrowDown') next = (searchTypeIndex + 1) % items.length;
+                else next = (searchTypeIndex - 1 + items.length) % items.length;
+                setSearchTypeIndex(next);
+                items[next].focus();
+              } else if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                const sel = SEARCH_TYPE_OPTIONS[searchTypeIndex] || 'all';
+                setSearchType(sel);
+                setSearchTypeOpen(false);
+                // focus back to button
+                const btn = searchTypeRef.current.querySelector('.search-type-select');
+                if (btn) btn.focus();
+              } else if (e.key === 'Escape') {
+                setSearchTypeOpen(false);
+                const btn = searchTypeRef.current.querySelector('.search-type-select');
+                if (btn) btn.focus();
+              }
+            }}
+          >
+            <button
+              type="button"
+              className="search-type-select"
+              aria-haspopup="listbox"
+              aria-expanded={searchTypeOpen}
+              onClick={() => {
+                setSearchTypeOpen(s => {
+                  const next = !s;
+                  if (next) {
+                    // when opening, ensure index matches current selection
+                    const idx = SEARCH_TYPE_OPTIONS.indexOf(searchType);
+                    setSearchTypeIndex(idx >= 0 ? idx : 0);
+                    // focus first item after a tick
+                    setTimeout(() => {
+                      const items = Array.from(searchTypeRef.current.querySelectorAll('.search-type-item'));
+                      const focusIdx = idx >= 0 ? idx : 0;
+                      if (items && items[focusIdx]) items[focusIdx].focus();
+                    }, 0);
+                  }
+                  return next;
+                });
+              }}
+            >
+              {searchType === 'all' ? 'All' : searchType === 'movie' ? 'Movies' : searchType === 'tv' ? 'TV-series' : 'Celebrities'}
+            </button>
+
+            {searchTypeOpen && (
+              <ul className="search-type-dropdown" role="listbox" aria-label="Search type options">
+                {SEARCH_TYPE_OPTIONS.map((opt, i) => (
+                  <li
+                    key={opt}
+                    role="option"
+                    tabIndex={-1}
+                    className={`search-type-item ${searchType === opt ? 'selected' : ''}`}
+                    onClick={() => { setSearchType(opt); setSearchTypeOpen(false); }}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSearchType(opt); setSearchTypeOpen(false); } }}
+                  >
+                    {opt === 'all' ? 'All' : opt === 'movie' ? 'Movies' : opt === 'tv' ? 'TV-series' : 'Celebrities'}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
           <div className="search-input-container">
             <input
               className="search-input"
