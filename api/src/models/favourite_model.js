@@ -37,8 +37,6 @@ export async function removeFavoriteFromList(favourite_id, movie_id) {
 }
 
 export async function getOrCreateDefaultListForAccount(account_id) {
-  // For compatibility with frontend which expects a single list per account,
-  // we create or return a default list named 'Favorites'.
   const find = `SELECT * FROM favouritelist WHERE account_id = $1 LIMIT 1`;
   let { rows } = await pool.query(find, [account_id]);
   if (rows.length > 0) return rows[0];

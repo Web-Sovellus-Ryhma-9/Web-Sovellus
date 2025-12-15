@@ -9,7 +9,7 @@ function extractAccount(req) {
   if (parts.length !== 2 || parts[0] !== "Bearer") return null;
   try {
     const decoded = jwt.verify(parts[1], JWT_SECRET);
-    return decoded; // { account_id, username }
+    return decoded;
   } catch (e) {
     return null;
   }
@@ -41,8 +41,6 @@ export async function postReview(req, res, next) {
     const username = acct ? acct.username : (req.body.user || req.body.username || "Anonyymi");
 
     console.log('postReview called', { movie_id, account_id, username, rating: parsedRating, comment });
-
-    // one review per account per movie -> UPDATE if exists, INSERT otherwise
     if (account_id) {
       const existing = await findReviewByAccountAndMovie(account_id, movie_id);
       if (existing) {

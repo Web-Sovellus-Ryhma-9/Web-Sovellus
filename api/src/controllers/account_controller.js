@@ -41,7 +41,7 @@ export async function register(req, res, next) {
 
 export async function login(req, res, next) {
   try {
-    const { identifier, password } = req.body; // identifier = username or email
+    const { identifier, password } = req.body;
     if (!identifier || !password) return res.status(400).json({ error: "Missing credentials" });
 
     const user = await findByUsernameOrEmail(identifier);
@@ -100,7 +100,6 @@ export async function logout(req, res, next) {
     try {
       const decoded = jwt.verify(token, JWT_SECRET);
       if (!decoded || !decoded.account_id) return res.status(400).json({ error: "Invalid token payload" });
-      // Stateless JWTs cannot be invalidated here without a blacklist; just acknowledge logout.
       return res.json({ message: "Logged out" });
     } catch (err) {
       return res.status(401).json({ error: "Invalid token" });

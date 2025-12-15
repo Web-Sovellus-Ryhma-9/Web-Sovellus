@@ -37,13 +37,11 @@ export async function getGroups(req, res, next) {
     const account_id = acct ? acct.account_id : null;
 
     const groups = await getAllGroups();
-
-    // augment each group with role_status relative to the requesting user
     const out = await Promise.all(groups.map(async (g) => {
-      let role_status = 0; // default: not member (0 = not member, 1 = owner, 2 = member, 3 = pending)
+      let role_status = 0;
       if (account_id) {
         if (Number(g.account_id) === Number(account_id)) {
-          role_status = 1; // owner
+          role_status = 1;
         } else {
           const m = await findMember(g.group_id, account_id);
           if (m) role_status = m.role_status;
@@ -78,7 +76,6 @@ export async function createNewGroup(req, res, next) {
     if (!gname) return res.status(400).json({ error: "Missing group name" });
 
     const created = await createGroup(account_id, gname, description || null);
-    // add owner as member with role_status 1
     await addMember(created.group_id, account_id, 1).catch(() => null);
 
     res.status(201).json({ message: "Group created", group: { group_id: created.group_id, name: created.group_name } });
@@ -112,7 +109,6 @@ export async function getMembers(req, res, next) {
     const groupId = req.params.id;
     if (!groupId) return res.status(400).json({ error: "Missing group id" });
     const rows = await getMembersForGroup(groupId);
-    // map fields to what frontend expects
     res.json(rows.map(r => ({ member_id: r.member_id, account_id: r.account_id, username: r.username, avatar: r.avatar, role_status: r.role_status })));
   } catch (err) {
     next(err);
@@ -124,7 +120,6 @@ export async function getGroupMovies(req, res, next) {
     const groupId = req.params.id;
     if (!groupId) return res.status(400).json({ error: 'Missing group id' });
     const rows = await getMoviesForGroup(groupId);
-    // Try to detect media_type for each saved id by querying TMDB proxy
     const items = await Promise.all(rows.map(async (r) => {
       const id = r.movie_id;
       let media_type = 'movie';
@@ -155,18 +150,14 @@ export async function addMovieToGroupHandler(req, res, next) {
     const { group_id, movie_id, title, image, media_type: supplied_media_type } = req.body || {};
     if (!group_id || !movie_id) return res.status(400).json({ error: 'Missing data' });
 
-    // must be member (role 1 owner or 2 member)
     const membership = await findMember(group_id, account_id);
     if (!membership || (Number(membership.role_status) !== 1 && Number(membership.role_status) !== 2)) {
-      // allow owner via group.owner check too
       const g = await getGroupById(group_id);
       if (!g || Number(g.account_id) !== Number(account_id)) return res.status(403).json({ error: 'Forbidden: not a member' });
     }
 
-    // add, unique constraint will prevent duplicates
     try {
       const added = await addGroupMovie(group_id, movie_id, title || null, image || null);
-      // detect media_type if client didn't supply one; augment returned movie
       let media_type = supplied_media_type || 'movie';
       try {
         if (!supplied_media_type) {
@@ -178,7 +169,6 @@ export async function addMovieToGroupHandler(req, res, next) {
       }
       res.status(201).json({ message: 'Movie added to group', movie: { ...added, media_type } });
     } catch (e) {
-      // if unique violation, return 409
       if (e && e.code === '23505') return res.status(409).json({ error: 'Movie already added' });
       throw e;
     }
@@ -195,7 +185,6 @@ export async function removeMovieFromGroupHandler(req, res, next) {
     const { group_id, movie_id } = req.body || {};
     if (!group_id || !movie_id) return res.status(400).json({ error: 'Missing data' });
 
-    // only allow if requester is a group member (owner or member) or group owner
     const membership = await findMember(group_id, account_id);
     const g = await getGroupById(group_id);
     const isOwner = g && Number(g.account_id) === Number(account_id);
@@ -218,7 +207,6 @@ export async function joinGroupHandler(req, res, next) {
     const { group_id } = req.body || {};
     if (!group_id) return res.status(400).json({ error: "Missing group_id" });
 
-    // check if already a member
     const existing = await findMember(group_id, account_id);
     if (existing) {
       if (existing.role_status === 3) return res.status(200).json({ message: "Request already pending" });
@@ -228,7 +216,6 @@ export async function joinGroupHandler(req, res, next) {
     const added = await addMember(group_id, account_id, 3);
     res.status(201).json({ message: "Join request created", member: added });
   } catch (err) {
-    // unique constraint errors produce 400-like PG errors; surface as 409
     console.error('joinGroupHandler error', err);
     next(err);
   }
@@ -265,7 +252,6 @@ export async function deleteMemberHandler(req, res, next) {
     const m = await findMemberByAnyId(id);
     if (!m) return res.status(404).json({ error: "Member not found" });
 
-    // allow if requester is the same account or owner of the group
     const g = await getGroupById(m.group_id);
     const isOwner = g && Number(g.account_id) === Number(requester);
     const isSelf = Number(m.account_id) === Number(requester);

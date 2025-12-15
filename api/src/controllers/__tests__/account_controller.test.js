@@ -93,7 +93,7 @@ describe('account_controller.register', () => {
   });
 
   test('register fails when missing fields', async () => {
-    const req = { body: { username: 'u', email: 'e' } }; // missing password
+    const req = { body: { username: 'u', email: 'e' } };
     const res = makeRes();
     const next = jest.fn();
 
@@ -139,7 +139,6 @@ describe('account_controller.deleteAccount', () => {
   });
 
   test('deleteAccount succeeds with valid token', async () => {
-    // mock jwt.verify to return payload
     jwt.verify.mockReturnValue({ account_id: 42 });
     accountModel.deleteAccountById.mockResolvedValue({ account_id: 42 });
 
@@ -147,7 +146,6 @@ describe('account_controller.deleteAccount', () => {
     const res = makeRes();
     const next = jest.fn();
 
-    // import deleteAccount dynamically from controller
     const { deleteAccount } = await import('../account_controller.js');
     await deleteAccount(req, res, next);
 

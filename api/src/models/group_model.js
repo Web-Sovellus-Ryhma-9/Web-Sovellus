@@ -49,7 +49,6 @@ export async function findMember(group_id, account_id) {
 }
 
 export async function findMemberByAnyId(id) {
-  // id may be member_id or account_id
   const sql = `SELECT * FROM group_members WHERE member_id = $1 OR account_id = $1 LIMIT 1`;
   const { rows } = await pool.query(sql, [id]);
   return rows[0];

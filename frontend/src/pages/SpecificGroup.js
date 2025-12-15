@@ -50,7 +50,6 @@ export default function SpecificGroup() {
 
     async function load() {
       try {
-        // fetch basic groups and find this group's name (include auth so role_status is available)
         const token = localStorage.getItem('token');
         const greq = await fetch(`${API_BASE}/groups/getGroups`, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
         if (greq.ok) {
@@ -64,10 +63,8 @@ export default function SpecificGroup() {
           }
         }
       } catch (e) {
-        // ignore
       }
 
-      // fetch members
       try {
         const token2 = localStorage.getItem('token');
         const mres = await fetch(`${API_BASE}/groups/members/${groupId}`, { headers: token2 ? { Authorization: `Bearer ${token2}` } : {} });
@@ -76,10 +73,8 @@ export default function SpecificGroup() {
           if (!cancelled) setMembers(Array.isArray(mrows) ? mrows : []);
         }
       } catch (e) {
-        // ignore
       }
 
-      // load movies from server; fall back to localStorage
       try {
         const mres2 = await fetch(`${API_BASE}/groups/movies/${groupId}`);
         if (mres2.ok) {
@@ -108,9 +103,7 @@ export default function SpecificGroup() {
 
   useEffect(() => {
     if (!loading) {
-      // only allow access if user is a member or owner
       if (!isMember) {
-        // redirect to groups listing
         navigate('/groups');
       }
     }
@@ -122,16 +115,13 @@ export default function SpecificGroup() {
 
   async function confirmLeave() {
     try {
-      // owner cannot leave
       if (isOwner) {
-        // keep modal open to show owner message (handled in render)
         return;
       }
 
       const token = localStorage.getItem('token');
       const accountId = getCurrentAccountId();
       if (!token || !accountId) {
-        // not logged in: just close modal and navigate away
         setShowLeaveConfirm(false);
         navigate('/groups');
         return;
@@ -145,7 +135,6 @@ export default function SpecificGroup() {
         alert(body.error || `Failed to leave group (status ${res.status})`);
         return;
       }
-      // success -> navigate back to groups list
       setShowLeaveConfirm(false);
       navigate('/groups');
     } catch (err) {
@@ -173,7 +162,6 @@ export default function SpecificGroup() {
         {groupDescription ? (
           <p className="group-description">{groupDescription}</p>
         ) : null}
-        {/* Movies section */}
         <div className="group-movies-section">
           <label className="section-label">Group Movies</label>
           <div id="group-movies-grid" className="group-movie-grid">
@@ -203,25 +191,20 @@ export default function SpecificGroup() {
                       className="btn danger"
                       onClick={async (e) => {
                         e.preventDefault();
-                        // confirm deletion
                         const ok = window.confirm(`Remove "${m.title}" from this group?`);
                         if (!ok) return;
                         try {
-                          // try server delete first (requires auth)
                           const token = localStorage.getItem('token');
                           if (token) {
                             const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` };
                             const res = await fetch(`${API_BASE}/groups/movies/remove`, { method: 'POST', headers, body: JSON.stringify({ group_id: groupId, movie_id: String(m.id || m.movie_id) }) });
                             if (res.ok) {
-                              // remove locally too
                               const updated = (movies || []).filter(x => String(x.id || x.movie_id) !== String(m.id || m.movie_id));
                               setMovies(updated);
                               return;
                             }
-                            // if server delete failed due to auth or not found, fall back to local removal
                           }
 
-                          // localStorage fallback
                           const key = `groupMovies:${groupId}`;
                           const curr = JSON.parse(localStorage.getItem(key) || '[]');
                           const updated = Array.isArray(curr) ? curr.filter(x => String(x.id) !== String(m.id)) : [];
@@ -242,7 +225,6 @@ export default function SpecificGroup() {
           </div>
         </div>
 
-        {/* Members + actions */}
         <div className="group-members-section">
           <label className="section-label">Group Members</label>
           <div className="members-actions-row">

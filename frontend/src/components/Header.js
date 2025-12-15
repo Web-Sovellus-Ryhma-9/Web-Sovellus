@@ -5,7 +5,7 @@ import logo from "../assets/logo/PopcornHub_logo.png";
 
 function Header() {
   const [query, setQuery] = useState("");
-  const [searchType, setSearchType] = useState('all'); // 'all' | 'movie' | 'tv' | 'person'
+  const [searchType, setSearchType] = useState('all');
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [account, setAccount] = useState(null);
@@ -26,13 +26,11 @@ function Header() {
 
   function onSubmit(e) {
     e.preventDefault();
-    // allow submitting empty query — include saved filters if present
     let searchPath = "/search";
       try {
         const raw = localStorage.getItem('tmdb_filters');
         const params = new URLSearchParams();
         if (query) params.append('q', query);
-      // map header searchType to query params: person -> search_by=person, movie/tv/all -> type
       if (searchType === 'person') params.append('search_by', 'person');
       else if (searchType) params.append('type', searchType);
       if (raw) {
@@ -59,7 +57,6 @@ function Header() {
     return () => document.removeEventListener("click", onClickOutside);
   }, []);
 
-  // load account from localStorage
   useEffect(() => {
     const syncAccount = () => {
       try {
@@ -87,7 +84,6 @@ function Header() {
       return;
     }
 
-    // debounce
     if (timerRef.current) clearTimeout(timerRef.current);
         timerRef.current = setTimeout(async () => {
       setLoadingSuggestions(true);
@@ -98,12 +94,8 @@ function Header() {
         const res = await fetch(url);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const json = await res.json();
-            // DEBUG: log results returned from backend/TMDB to inspect fields
             console.log('TMDB search results for', query, json.results);
         const rawResults = (json.results || []).slice(0, 10);
-        // If we are searching people, deduplicate identical names (TMDB can contain
-        // multiple person entries with the same display name). Keep the entry with
-        // the highest popularity or with a profile image when possible.
         let top;
         if (searchType === 'person') {
           const byName = {};
@@ -114,14 +106,12 @@ function Header() {
               byName[name] = p;
             } else {
               const current = byName[name];
-              // prefer the one that has a profile image
               const curHasImage = !!current.profile_path;
               const pHasImage = !!p.profile_path;
               if (pHasImage && !curHasImage) {
                 byName[name] = p;
                 continue;
               }
-              // otherwise prefer higher popularity
               if ((p.popularity || 0) > (current.popularity || 0)) {
                 byName[name] = p;
               }
@@ -129,9 +119,6 @@ function Header() {
           }
           top = Object.values(byName).slice(0, 5);
         } else {
-          // When searching "all", the backend may return movies first which
-          // could make the suggestions all movies. Try to include a mix of
-          // movies and tv shows in the top suggestions for better UX.
           if (searchType === 'all') {
             const movies = rawResults.filter(r => r.media_type === 'movie');
             const tvs = rawResults.filter(r => r.media_type === 'tv');
@@ -143,7 +130,6 @@ function Header() {
               if (i < tvs.length) mixed.push(tvs[i]);
               i++;
             }
-            // fill remaining slots from rawResults if needed
             for (const r of rawResults) {
               if (mixed.length >= 5) break;
               if (!mixed.includes(r)) mixed.push(r);
@@ -171,7 +157,6 @@ function Header() {
   function onSelectSuggestion(item) {
     const primaryTitle = item.title || item.name || item.original_title || item.original_name || `#${item.id}`;
 
-    // If this looks like a movie result, go straight to the movie page
     const isMovie = Boolean(item.title || item.media_type === 'movie' || item.release_date);
     const isTv = Boolean(item.name || item.media_type === 'tv' || item.first_air_date);
     if (isMovie && item.id) {
@@ -187,7 +172,6 @@ function Header() {
       return;
     }
 
-    // Fallback: navigate to search page preserving filters
     let searchPath = `/search?q=${encodeURIComponent(primaryTitle)}`;
     try {
       const raw = localStorage.getItem('tmdb_filters');
@@ -195,7 +179,6 @@ function Header() {
         const f = JSON.parse(raw);
         const params = new URLSearchParams();
         params.append('q', primaryTitle);
-        // map header searchType into search route params
         if (searchType === 'person') params.append('search_by', 'person');
         else if (searchType) params.append('type', searchType);
         if (f.year_from) params.append('year_from', f.year_from);
@@ -210,7 +193,6 @@ function Header() {
   }
 
   function handleSuggestionClick(s, primaryTitle) {
-    // If it's a movie title suggestion, go directly to movie page
     if ((searchType === 'movie' || (searchType === 'all' && s && s.media_type === 'movie')) && s && s.id && s.title) {
       setShowSuggestions(false);
       setQuery(primaryTitle || s.title || '');
@@ -224,7 +206,6 @@ function Header() {
       return;
     }
 
-    // If it's a person suggestion, start a person search (preserve filters)
     if (searchType === 'person' && s && s.name) {
       try {
         const params = new URLSearchParams();
@@ -246,7 +227,6 @@ function Header() {
       return;
     }
 
-    // fallback: perform a regular select (title search)
     onSelectSuggestion(primaryTitle || s.title || s.name || '');
   }
 
@@ -352,7 +332,6 @@ function Header() {
                 <button onClick={() => { setShowProfileMenu(false); navigate('/profile'); }} className="profile-menu-button">My Profile</button>
                 <button onClick={() => { setShowProfileMenu(false); navigate('/owngroups'); }} className="profile-menu-button">My Groups</button>
                 <button onClick={() => {
-                  // logout
                   localStorage.removeItem('token');
                   localStorage.removeItem('account');
                   setAccount(null);

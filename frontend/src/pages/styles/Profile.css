@@ -1,4 +1,3 @@
-/* Profile page */
 .profile-container {
   max-width: 900px;
   margin: 2rem auto;
@@ -14,7 +13,6 @@
   width: 240px;
 }
 
-/* main column */
 .profile-main {
   flex: 1;
 }
@@ -50,7 +48,6 @@
   border-bottom: 1px solid #eee;
 }
 
-/* poster column */
 .favorite-image-wrapper {
   width: 92px;
   height: 138px;
@@ -73,14 +70,12 @@
   color: #888;
 }
 
-/* favourites link */
 .favorite-link {
   text-decoration: none;
   color: #222;
   font-weight: 600;
 }
 
-/* Small avatar + wrapper */
 .profile-avatar.small {
   width: 80px;
   height: 80px;
@@ -164,4 +159,109 @@
   text-align: center;
   color: #444;
   font-weight: 600;
+}
+
+/* Mobile Responsivity */
+@media (max-width: 768px) {
+  .profile-container {
+    padding: 0 0.75rem;
+  }
+  
+  .profile-grid {
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .profile-sidebar {
+    width: 100%;
+  }
+  
+  .profile-main {
+    width: 100%;
+  }
+  
+  .profile-btn {
+    margin-bottom: 10px;
+  }
+  
+  .favorite-item {
+    gap: 10px;
+    padding: 10px;
+  }
+  
+  .favorite-image-wrapper {
+    width: 80px;
+    height: 120px;
+  }
+  
+  .avatar-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+  }
+  
+  .avatar-choice {
+    height: 70px;
+  }
+}
+
+@media (max-width: 480px) {
+  .profile-container {
+    margin: 1rem auto;
+    padding: 0 0.5rem;
+  }
+  
+  .profile-avatar.small {
+    width: 70px;
+    height: 70px;
+    border-radius: 35px;
+    font-size: 28px;
+  }
+  
+  .profile-username {
+    font-size: 1.1rem;
+  }
+  
+  .profile-email {
+    font-size: 12px;
+  }
+  
+  .profile-btn {
+    padding: 10px 8px;
+    font-size: 14px;
+  }
+  
+  .favorite-item {
+    flex-direction: column;
+    text-align: center;
+    gap: 8px;
+  }
+  
+  .favorite-image-wrapper {
+    width: 100%;
+    max-width: 120px;
+    height: 180px;
+    margin: 0 auto;
+  }
+  
+  .favorite-link {
+    display: block;
+    text-align: center;
+  }
+  
+  .favorite-item > div:last-child {
+    width: 100%;
+  }
+  
+  .favorite-item > div:last-child .btn {
+    width: 100%;
+  }
+  
+  .avatar-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+  }
+  
+  .avatar-choice {
+    height: 60px;
+  }
 }

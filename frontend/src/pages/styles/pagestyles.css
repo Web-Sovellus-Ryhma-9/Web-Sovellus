@@ -1,10 +1,9 @@
-/* === Dark orange & black theme overrides === */
 :root {
   --bg-color: #050505;
   --surface-color: #121212;
   --surface-elevated: #1c1c1c;
-  --accent-color: #ff9800;      /* main orange */
-  --accent-soft: #ffb74d;       /* lighter orange */
+  --accent-color: #ff9800;
+  --accent-soft: #ffb74d;
   --text-color: #f5f5f5;
   --text-muted: #b0b0b0;
   --border-color: #333333;
@@ -12,17 +11,16 @@
     Roboto, sans-serif;
 }
 
-/* Global page background + base font */
 body {
   margin: 0;
   font-family: var(--font-family-base);
   background: radial-gradient(circle at top, #111 0, #000 55%, #000 100%),
               url('../../assets/logo/PopcornHub_logo.png');
-  background-repeat: no-repeat;  /* prevent tiling */
-  background-attachment: fixed;  /* keep it anchored while scrolling */
+  background-repeat: no-repeat;
+  background-attachment: fixed;
   background-position: center center, center center;
   background-size: auto, 800px;
-  background-color: #000;        /* fallback fill below gradient */
+  background-color: #000;
   color: var(--text-color);
   position: relative;
 }
@@ -48,7 +46,6 @@ body::before {
   position: relative;
   z-index: 1;
 }
-/* Main page card */
 .page-container {
   max-width: 960px;
   margin: 2.5rem auto;
@@ -58,7 +55,6 @@ body::before {
   box-sizing: border-box;
 }
 
-/* Typography */
 h1, h2, h3, h4 {
   color: #ffffff;
   letter-spacing: 0.02em;
@@ -71,13 +67,11 @@ h1, h2, h3, h4 {
   font-weight: 650;
 }
 
-/* Section labels (like "Group Movies") */
 .section-label {
   color: #ffffff;
   font-weight: 600;
 }
 
-/* Generic text colors */
 .small-note {
   color: var(--text-muted);
 }
@@ -86,7 +80,6 @@ h1, h2, h3, h4 {
   color: #ff6b6b;
 }
 
-/* Links */
 a,
 .link-unstyled {
   color: var(--accent-soft);
@@ -97,7 +90,6 @@ a:hover,
   color: var(--accent-color);
 }
 
-/* Header row subtle divider */
 .page-header {
   border-bottom: 1px solid rgba(255, 255, 255, 0.04);
   padding-bottom: 0.5rem;
@@ -118,7 +110,6 @@ a:hover,
   max-width: 600px;
 }
 
-/* Buttons */
 .btn {
   padding: 8px 14px;
   border-radius: 999px;
@@ -160,7 +151,6 @@ a:hover,
   color: #000;
 }
 
-/* status buttons keep semantic colors but tuned for dark bg */
 .btn.danger {
   background: #e53935;
   color: #fff;
@@ -182,7 +172,6 @@ a:hover,
   box-shadow: none;
 }
 
-/* Movie placeholder */
 .movie-placeholder {
   background: #1f1f1f;
   color: var(--text-muted);
@@ -224,12 +213,10 @@ a:hover,
   display: block;
 }
 
-/* Member role label (Owner / Member / Pending) */
 .member-role-label {
   color: var(--text-muted);
 }
 
-/* Modal styling for dark theme */
 .modal-overlay {
   background: rgba(0, 0, 0, 0.72);
   position: fixed;

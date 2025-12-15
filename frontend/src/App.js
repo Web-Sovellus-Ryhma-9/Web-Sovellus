@@ -31,7 +31,6 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/notfound" element={<NotFound />} />
         <Route path="/register" element={<Register />} />
-        {/* fallback: any unknown path -> NotFound */}
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Router>
