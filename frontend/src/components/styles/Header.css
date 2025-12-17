@@ -28,7 +28,7 @@
 }
 
 .logo-button:focus-visible {
-  outline: 2px solid rgba(97,218,251,0.6);
+  outline: 2px solid var(--accent-color);
   outline-offset: 2px;
   border-radius: 8px;
 }
@@ -52,8 +52,8 @@
   display: inline-flex;
   align-items: center;
   padding: 8px 10px;
-  border-radius: 999px; /* pill shape like group-select */
-  background: #111; /* auth-like dark box */
+  border-radius: 999px;
+  background: #111;
   color: var(--text-color, #fff);
   border: 1px solid var(--accent-color);
   font-size: 0.9rem;
@@ -63,10 +63,9 @@
   -webkit-appearance: none;
   -moz-appearance: none;
   -webkit-tap-highlight-color: transparent;
-  accent-color: #111; /* neutralize default blue accents in modern browsers */
+  accent-color: #111;
   cursor: pointer;
-  /* show custom chevron on the right to match native affordance */
-  padding-right: 36px; /* space for chevron */
+  padding-right: 36px;
   background-image: url("data:image/svg+xml;utf8,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2010%2010'%3E%3Cpath%20d='M1%203l4%204%204-4'%20stroke='%23fff'%20stroke-width='1.4'%20fill='none'%20stroke-linecap='round'%20stroke-linejoin='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 10px center;
@@ -80,7 +79,6 @@
   border-color: var(--accent-color);
 }
 
-/* Custom search type dropdown (replaces native select) */
 .search-type-wrapper {
   position: relative;
   display: inline-block;
@@ -98,7 +96,7 @@
   box-sizing: border-box;
   cursor: pointer;
   padding-right: 36px;
-  min-width: 120px; /* make a bit wider to match texts */
+  min-width: 120px;
   position: relative;
 }
 
@@ -139,7 +137,6 @@
   background: rgba(255,255,255,0.04);
 }
 
-/* chevron for custom dropdown button */
 .search-type-select::after {
   content: '';
   position: absolute;
@@ -452,7 +449,7 @@
   right: 0;
   margin-top: 8px;
   background: #1c1c1c;
-  border: 1px solid #ddd;
+  border: 1px solid var(--accent-color);
   border-radius: 6px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.08);
   z-index: 60;
