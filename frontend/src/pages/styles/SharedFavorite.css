@@ -8,7 +8,7 @@
 }
 
 .shared-item-card {
-  border: 1px solid #eee;
+  border: 1px solid #ff9800;
   padding: 8px;
   display: flex;
   gap: 12px;
@@ -44,6 +44,6 @@
 
 .shared-item-link {
   text-decoration: none;
-  color: #222;
+  color: var(--text-muted, #b0b0b0);
   font-weight: 600;
 }

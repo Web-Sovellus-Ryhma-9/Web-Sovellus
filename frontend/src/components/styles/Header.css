@@ -469,7 +469,7 @@
 }
 
 .profile-menu-button:hover {
-  background: #f5f5f5;
+  background: var(--accent-color);
 }
 
 .logout-button {
