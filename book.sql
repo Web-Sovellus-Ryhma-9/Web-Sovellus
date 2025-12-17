@@ -1,4 +1,3 @@
--- Drop tables in dependency order (children first, then parents)
 DROP TABLE IF EXISTS group_movies;
 DROP TABLE IF EXISTS group_members;
 DROP TABLE IF EXISTS reviews;
@@ -20,12 +19,9 @@ CREATE TABLE IF NOT EXISTS groupList (
   account_id INTEGER NOT NULL REFERENCES account(account_id) ON DELETE CASCADE,
   group_name VARCHAR(255) NOT NULL,
   description TEXT,
-  -- role_status removed from groupList: per-account role is stored in group_members
   created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
 );
 
--- FavouriteList table: stores per-account favourite lists
--- Use lowercase table name so Postgres unquoted identifiers match
 CREATE TABLE IF NOT EXISTS favouritelist (
   favourite_id SERIAL PRIMARY KEY,
   account_id INT NOT NULL,
@@ -33,7 +29,6 @@ CREATE TABLE IF NOT EXISTS favouritelist (
   CONSTRAINT fk_favourite_account FOREIGN KEY (account_id) REFERENCES account(account_id) ON DELETE CASCADE
 );
 
--- Items belonging to FavouriteList (map favourite list -> movie)
 CREATE TABLE IF NOT EXISTS favourite_items (
   id SERIAL PRIMARY KEY,
   favourite_id INT NOT NULL,
@@ -43,7 +38,6 @@ CREATE TABLE IF NOT EXISTS favourite_items (
   CONSTRAINT uniq_favitem UNIQUE (favourite_id, movie_id)
 );
 
--- Reviews table: store movie reviews so that users can post and others can read them
 CREATE TABLE IF NOT EXISTS reviews (
   review_id SERIAL PRIMARY KEY,
   movie_id VARCHAR(255) NOT NULL,
@@ -59,12 +53,11 @@ CREATE TABLE IF NOT EXISTS group_members (
   member_id SERIAL PRIMARY KEY,
   group_id INTEGER NOT NULL REFERENCES groupList(group_id) ON DELETE CASCADE,
   account_id INTEGER NOT NULL REFERENCES account(account_id) ON DELETE CASCADE,
-  role_status INTEGER NOT NULL DEFAULT 3, -- 1=owner, 2=member, 3=pending (0 = not member / no membership row)
+  role_status INTEGER NOT NULL DEFAULT 3,
   joined_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
   UNIQUE (group_id, account_id)
 );
 
--- Movies added to groups (one movie can appear in many groups)
 CREATE TABLE IF NOT EXISTS group_movies (
   id SERIAL PRIMARY KEY,
   group_id INTEGER NOT NULL REFERENCES groupList(group_id) ON DELETE CASCADE,
