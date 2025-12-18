@@ -43,3 +43,6 @@ Run tests with:
 cd api
 npm test
 ```
+
+You can find this application live in web at this domain: https://popcorn-hub-l1n1.onrender.com/
+It will be removed from web at some point, because we do not want to pay to keep it live.
